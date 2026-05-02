@@ -1,0 +1,434 @@
+import listingService from '#services/listingService.js';
+import carListingService from '#services/carListingService.js';
+import propertyListingService from '#services/propertyListingService.js';
+import listingMediaService from '#services/listingMediaService.js';
+import categoryRepository from '#repositories/categoryRepository.js';
+import { successResponse, errorResponse, createResponse, validationErrorResponse, paymentRequiredResponse, paginatedResponse } from '#utils/responseFormatter.js';
+import { 
+  parseListingData, 
+  parseCarListingData, 
+  parsePropertyListingData 
+} from '#utils/formDataParser.js';
+import LocationHelper from '#utils/locationHelper.js';
+
+class ListingController {
+  static async create(req, res) {
+    try {
+      const userId = req.user.userId;
+
+      const listingData = parseListingData(req.body);
+
+      if (!listingData.categoryId) {
+        return errorResponse(res, 'Category is required', 400);
+      }
+
+      const category = await categoryRepository.getById(listingData.categoryId);
+      if (!category) {
+        return errorResponse(res, 'Invalid category', 400);
+      }
+
+      let categoryData = null;
+      const categorySlug = category.slug.toLowerCase();
+
+      if (categorySlug === 'cars' || categorySlug === 'car') {
+        const carData = parseCarListingData(req.body);
+        categoryData = {
+          type: 'car',
+          data: carListingService.prepareCarData(carData)
+        };
+      } else if (categorySlug === 'properties' || categorySlug === 'property') {
+        const propertyData = parsePropertyListingData(req.body);
+        categoryData = {
+          type: 'property',
+          data: propertyListingService.preparePropertyData(propertyData)
+        };
+      }
+
+      const result = await listingService.create(listingData, categoryData, userId);
+      
+      return createResponse(res, result.data, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+
+  static async getFeed(req, res) {
+    try {
+      const userId = req.user.userId;
+      const userLocation = await LocationHelper.parseUserLocation(req);
+
+      const filters = {
+        status: 'active',
+        
+        categoryId: req.query.categoryId ? parseInt(req.query.categoryId) : undefined,
+        stateId: req.query.stateId ? parseInt(req.query.stateId) : undefined,
+        cityId: req.query.cityId ? parseInt(req.query.cityId) : undefined,
+        minPrice: req.query.minPrice ? parseFloat(req.query.minPrice) : undefined,
+        maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice) : undefined,
+        search: req.query.search,
+        sortBy: req.query.sortBy || 'relevance'
+      };
+
+      const pagination = {
+        page: req.query.page ? parseInt(req.query.page) : 1,
+        limit: req.query.limit ? parseInt(req.query.limit) : 20
+      };
+
+      const result = await listingService.getAll(filters, pagination, userId, userLocation);
+      return paginatedResponse(res, result.data, result.pagination, 'Personalized feed retrieved successfully');
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+
+  static async getMyListings(req, res) {
+    try {
+      const userId = req.user.userId;
+      const userLocation = await LocationHelper.parseUserLocation(req);
+
+      const filters = {
+        userId,
+        status: req.query.status,
+        categoryId: req.query.categoryId ? parseInt(req.query.categoryId) : undefined,
+        search: req.query.search
+      };
+
+      const pagination = {
+        page: req.query.page ? parseInt(req.query.page) : 1,
+        limit: req.query.limit ? parseInt(req.query.limit) : 20
+      };
+
+      const result = await listingService.getAll(filters, pagination, userId, userLocation);
+      return paginatedResponse(res, result.data, result.pagination, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+
+  static async getById(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = req.user.userId;
+
+      const result = await listingService.getById(parseInt(id), userId, false);
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 404);
+    }
+  }
+
+  static async update(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = req.user.userId;
+
+      if (req.body.categoryId !== undefined) {
+        return errorResponse(res, 'Category cannot be changed after creation', 400);
+      }
+
+      if (req.body.shareCode !== undefined) {
+        return errorResponse(res, 'Share code cannot be modified', 400);
+      }
+
+      const updateData = {};
+      const body = req.body;
+
+      if (body.title !== undefined) updateData.title = body.title?.trim();
+      if (body.description !== undefined) updateData.description = body.description?.trim();
+      if (body.price !== undefined) updateData.price = parseFloat(body.price);
+      if (body.priceNegotiable !== undefined) {
+        updateData.priceNegotiable = body.priceNegotiable === 'true' || body.priceNegotiable === true;
+      }
+      if (body.stateId !== undefined) updateData.stateId = parseInt(body.stateId);
+      if (body.cityId !== undefined) updateData.cityId = parseInt(body.cityId);
+      if (body.locality !== undefined) updateData.locality = body.locality?.trim() || null;
+      if (body.address !== undefined) updateData.address = body.address?.trim() || null;
+      if (body.latitude !== undefined) updateData.latitude = body.latitude ? parseFloat(body.latitude) : null;
+      if (body.longitude !== undefined) updateData.longitude = body.longitude ? parseFloat(body.longitude) : null;
+
+      let categoryData = null;
+
+      if (body.carData) {
+        const carData = typeof body.carData === 'string' ? JSON.parse(body.carData) : body.carData;
+        categoryData = {
+          type: 'car',
+          data: carListingService.prepareCarData(carData)
+        };
+      } else if (body.propertyData) {
+        const propertyData = typeof body.propertyData === 'string' ? JSON.parse(body.propertyData) : body.propertyData;
+        categoryData = {
+          type: 'property',
+          data: propertyListingService.preparePropertyData(propertyData)
+        };
+      }
+
+      const result = await listingService.update(parseInt(id), updateData, categoryData, userId, false);
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+
+  static async submit(req, res) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const userId = req.user.userId;
+
+      if (status !== 'pending') {
+        return errorResponse(res, 'Status must be "pending" to submit for approval', 400);
+      }
+
+      const result = await listingService.submit(parseInt(id), userId);
+      
+      if (result.quotaExceeded) {
+        return paymentRequiredResponse(res, result.message, result.data);
+      }
+      
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+
+  static async markAsSold(req, res) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const userId = req.user.userId;
+
+      if (status !== 'sold') {
+        return errorResponse(res, 'Status must be "sold" to mark listing as sold', 400);
+      }
+
+      const result = await listingService.markAsSold(parseInt(id), userId);
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+
+  static async makeFeatured(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = req.user.userId;
+
+      const result = await listingService.makeFeatured(parseInt(id), userId);
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+
+  static async removeFeatured(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = req.user.userId;
+
+      const result = await listingService.removeFeatured(parseInt(id), userId);
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+
+  static async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = req.user.userId;
+
+      const result = await listingService.delete(parseInt(id), userId, false);
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+
+  static async uploadMedia(req, res) {
+    try {
+      const { id } = req.params;
+      const files = req.files;
+
+      if (!files || files.length === 0) {
+        return errorResponse(res, 'No files uploaded', 400);
+      }
+
+      const result = await listingMediaService.uploadMedia(parseInt(id), files);
+      
+      if (result.errors && result.errors.length > 0) {
+        return res.status(207).json({
+          success: true,
+          message: result.message,
+          data: result.data,
+          errors: result.errors
+        });
+      }
+
+      return createResponse(res, result.data, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+
+  static async deleteMedia(req, res) {
+    try {
+      const { id, mediaId } = req.params;
+
+      const result = await listingMediaService.delete(parseInt(mediaId), parseInt(id));
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+
+  static async searchListings(req, res) {
+    try {
+      const {
+        query,
+        categoryId,
+        priceMin,
+        priceMax,
+        stateId,
+        cityId,
+        locality,
+        postedByType,
+        featuredOnly,
+        sortBy = 'relevance',
+        page = 1,
+        limit = 20,
+        // Car-specific filters
+        brandId,
+        modelId,
+        variantId,
+        year,
+        fuelType,
+        transmission,
+        condition,
+        minMileage,
+        maxMileage,
+        // Property-specific filters
+        propertyType,
+        bedrooms,
+        bathrooms,
+        minArea,
+        maxArea
+      } = req.query;
+
+      const pageNum = parseInt(page);
+      const limitNum = Math.min(parseInt(limit), 50);
+
+      if (pageNum < 1 || limitNum < 1) {
+        return validationErrorResponse(res, [{ field: 'pagination', message: 'Invalid pagination parameters' }]);
+      }
+
+      const searchParams = {
+        query: query?.trim() || null,
+        categoryId: categoryId ? parseInt(categoryId) : null,
+        priceMin: priceMin ? parseFloat(priceMin) : null,
+        priceMax: priceMax ? parseFloat(priceMax) : null,
+        stateId: stateId ? parseInt(stateId) : null,
+        cityId: cityId ? parseInt(cityId) : null,
+        locality: locality?.trim() || null,
+        postedByType,
+        featuredOnly: featuredOnly === 'true',
+        sortBy,
+        filters: {
+          brandId: brandId ? parseInt(brandId) : null,
+          modelId: modelId ? parseInt(modelId) : null,
+          variantId: variantId ? parseInt(variantId) : null,
+          year: year ? parseInt(year) : null,
+          fuelType,
+          transmission,
+          condition,
+          minMileage: minMileage ? parseInt(minMileage) : null,
+          maxMileage: maxMileage ? parseInt(maxMileage) : null,
+          propertyType,
+          bedrooms: bedrooms ? parseInt(bedrooms) : null,
+          bathrooms: bathrooms ? parseInt(bathrooms) : null,
+          minArea: minArea ? parseInt(minArea) : null,
+          maxArea: maxArea ? parseInt(maxArea) : null
+        }
+      };
+
+      const userContext = {
+        userId: req.user.userId,
+        sessionId: req.activityData?.sessionId || `user_${req.user.userId}`,
+        userLocation: await LocationHelper.parseUserLocation(req),
+        ipAddress: req.activityData?.ipAddress,
+        userAgent: req.activityData?.userAgent,
+        user: req.user
+      };
+
+      const pagination = { page: pageNum, limit: limitNum };
+
+      const result = await listingService.searchListings(searchParams, userContext, pagination);
+
+      if (result.success) {
+        return paginatedResponse(res, result.data.listings, result.data.pagination, result.message);
+      } else {
+        return errorResponse(res, result.message, 500);
+      }
+    } catch (error) {
+      console.error('Error in searchListings:', error);
+      return errorResponse(res, 'Failed to search listings', 500);
+    }
+  }
+
+  static async getSearchSuggestions(req, res) {
+    try {
+      const { query, limit = 5 } = req.query;
+
+      if (!query || query.length < 2) {
+        return successResponse(res, { suggestions: [] }, 'No suggestions for short query');
+      }
+
+      const userLocation = await LocationHelper.parseUserLocation(req);
+      const limitNum = Math.min(parseInt(limit), 10);
+
+      const result = await listingService.getSearchSuggestions(query, userLocation, limitNum);
+
+      if (result.success) {
+        return successResponse(res, result.data, result.message);
+      } else {
+        return errorResponse(res, result.message, 500);
+      }
+    } catch (error) {
+      console.error('Error in getSearchSuggestions:', error);
+      return errorResponse(res, 'Failed to get search suggestions', 500);
+    }
+  }
+
+  static async getSearchFilters(req, res) {
+    try {
+      const { categoryId } = req.params;
+      const userLocation = await LocationHelper.parseUserLocation(req);
+
+      const result = await listingService.getSearchFilters(
+        categoryId ? parseInt(categoryId) : null,
+        userLocation
+      );
+
+      if (result.success) {
+        return successResponse(res, result.data, result.message);
+      } else {
+        return errorResponse(res, result.message, 500);
+      }
+    } catch (error) {
+      console.error('Error in getSearchFilters:', error);
+      return errorResponse(res, 'Failed to get search filters', 500);
+    }
+  }
+
+  static async getMyStats(req, res) {
+    try {
+      const userId = req.user.userId;
+
+      const result = await listingService.getStats(userId);
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      return errorResponse(res, error.message, 400);
+    }
+  }
+}
+
+export default ListingController;

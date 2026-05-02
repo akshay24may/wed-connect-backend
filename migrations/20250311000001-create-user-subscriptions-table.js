@@ -1,0 +1,345 @@
+export async function up(queryInterface, Sequelize) {
+  await queryInterface.createTable('user_subscriptions', {
+    id: {
+      type: Sequelize.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false
+    },
+    user_id: {
+      type: Sequelize.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'RESTRICT'
+    },
+    plan_id: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'subscription_plans',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'RESTRICT'
+    },
+
+    ends_at: {
+      type: Sequelize.DATE,
+      allowNull: false
+    },
+    activated_at: {
+      type: Sequelize.DATE,
+      allowNull: true
+    },
+    // Status & Lifecycle
+    status: {
+      type: Sequelize.ENUM('pending', 'active', 'expired', 'cancelled', 'suspended'),
+      allowNull: false,
+      defaultValue: 'pending'
+    },
+    is_trial: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    trial_ends_at: {
+      type: Sequelize.DATE,
+      allowNull: true
+    },
+    // Auto-Renewal
+    auto_renew: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    cancelled_at: {
+      type: Sequelize.DATE,
+      allowNull: true
+    },
+    cancellation_reason: {
+      type: Sequelize.TEXT,
+      allowNull: true
+    },
+    // Reminders
+    renewal_reminder_sent: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    expiry_reminder_sent: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    // Plan Identification Snapshot
+    plan_name: {
+      type: Sequelize.STRING(255),
+      allowNull: false
+    },
+    plan_code: {
+      type: Sequelize.STRING(50),
+      allowNull: false
+    },
+    plan_version: {
+      type: Sequelize.INTEGER,
+      allowNull: false
+    },
+    // Pricing Snapshot
+    base_price: {
+      type: Sequelize.DECIMAL(10, 2),
+      allowNull: false
+    },
+    discount_amount: {
+      type: Sequelize.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.00
+    },
+    final_price: {
+      type: Sequelize.DECIMAL(10, 2),
+      allowNull: false
+    },
+    currency: {
+      type: Sequelize.STRING(3),
+      allowNull: false,
+      defaultValue: 'INR'
+    },
+    billing_cycle: {
+      type: Sequelize.STRING(20),
+      allowNull: true
+    },
+    duration_days: {
+      type: Sequelize.INTEGER,
+      allowNull: false
+    },
+    // Portfolio Quotas Snapshot
+    max_published_portfolios: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Max published portfolios'
+    },
+    portfolios_quota_rolling_days: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      comment: 'Snapshot: Rolling window period in days'
+    },
+    max_storage_mb: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      comment: 'Snapshot: Maximum storage in MB for all portfolio media (null = unlimited)'
+    },
+    // Featured & Promotional Snapshot
+    max_featured_portfolios: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Max featured portfolios'
+    },
+    max_homepage_portfolios: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Max homepage portfolios'
+    },
+    featured_days: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Featured duration'
+    },
+    homepage_days: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Homepage duration'
+    },
+    // Visibility & Priority Snapshot
+    priority_score: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Priority score'
+    },
+    search_boost_multiplier: {
+      type: Sequelize.DECIMAL(5, 2),
+      allowNull: false,
+      defaultValue: 1.0,
+      comment: 'Snapshot: Search boost multiplier'
+    },
+    national_visibility: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Snapshot: National visibility flag'
+    },
+    // Portfolio Management Snapshot
+    is_auto_approve_enabled: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Snapshot: auto-approve setting from plan'
+    },
+    // Republish Settings Snapshot
+    max_republish_count: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Maximum times a portfolio can be republished (0 = unlimited)'
+    },
+    republish_cooldown_days: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 7,
+      comment: 'Snapshot: Minimum days required between consecutive republishes'
+    },
+    // Support Snapshot
+    support_level: {
+      type: Sequelize.STRING(20),
+      allowNull: false,
+      defaultValue: 'standard'
+    },
+    // Features Snapshot
+    features: {
+      type: Sequelize.JSON,
+      allowNull: false,
+      defaultValue: {}
+    },
+    // Payment Reference
+    invoice_id: {
+      type: Sequelize.BIGINT,
+      allowNull: true
+    },
+    payment_method: {
+      type: Sequelize.STRING(50),
+      allowNull: true
+    },
+    transaction_id: {
+      type: Sequelize.STRING(255),
+      allowNull: true
+    },
+    amount_paid: {
+      type: Sequelize.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.00
+    },
+    // Upgrade/Downgrade Tracking
+    previous_subscription_id: {
+      type: Sequelize.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'user_subscriptions',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    },
+    is_upgrade: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    is_downgrade: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    proration_credit: {
+      type: Sequelize.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.00
+    },
+    // Metadata & Notes
+    metadata: {
+      type: Sequelize.JSON,
+      allowNull: false,
+      defaultValue: {}
+    },
+    notes: {
+      type: Sequelize.TEXT,
+      allowNull: true
+    },
+    // Audit Fields
+    created_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    },
+    updated_by: {
+      type: Sequelize.JSON,
+      allowNull: true
+    },
+    deleted_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    },
+    created_at: {
+      type: Sequelize.DATE,
+      allowNull: false,
+      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+    },
+    updated_at: {
+      type: Sequelize.DATE,
+      allowNull: false,
+      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+    },
+    deleted_at: {
+      type: Sequelize.DATE,
+      allowNull: true
+    }
+  });
+
+  // Create indexes
+  await queryInterface.addIndex('user_subscriptions', ['user_id'], {
+    name: 'idx_user_subscriptions_user_id'
+  });
+
+  await queryInterface.addIndex('user_subscriptions', ['plan_id'], {
+    name: 'idx_user_subscriptions_plan_id'
+  });
+
+  await queryInterface.addIndex('user_subscriptions', ['status'], {
+    name: 'idx_user_subscriptions_status'
+  });
+
+  await queryInterface.addIndex('user_subscriptions', ['ends_at'], {
+    name: 'idx_user_subscriptions_ends_at'
+  });
+
+  await queryInterface.addIndex('user_subscriptions', ['deleted_at'], {
+    name: 'idx_user_subscriptions_deleted_at'
+  });
+
+  // Composite index for common query (get user's active subscription)
+  await queryInterface.addIndex('user_subscriptions', ['user_id', 'status'], {
+    name: 'idx_user_subscriptions_user_status'
+  });
+
+  // Unique constraint: Only one active subscription per user per category
+  await queryInterface.addIndex('user_subscriptions', ['user_id', 'plan_id'], {
+    name: 'unique_user_category_active_subscription',
+    unique: true,
+    where: {
+      status: 'active',
+      deleted_at: null
+    }
+  });
+}
+
+export async function down(queryInterface) {
+  await queryInterface.dropTable('user_subscriptions');
+}
