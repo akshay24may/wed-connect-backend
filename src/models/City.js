@@ -65,7 +65,7 @@ City.init(
       allowNull: true,
     },
     cityTier: {
-      type: DataTypes.ENUM('tier_1', 'tier_2', 'tier_3'),
+      type: DataTypes.STRING(20),
       allowNull: false,
       defaultValue: 'tier_3',
       field: "city_tier",

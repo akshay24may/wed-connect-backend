@@ -1,8 +1,46 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import sequelize from '#config/database.js';
 
-const ChatRoom = sequelize.define(
-  'ChatRoom',
+class ChatRoom extends Model {
+  static associate(models) {
+    this.belongsTo(models.Portfolio, {
+      foreignKey: 'portfolioId',
+      as: 'portfolio'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'consumerId',
+      as: 'consumer'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'vendorId',
+      as: 'vendor'
+    });
+
+    this.hasMany(models.ChatMessage, {
+      foreignKey: 'chatRoomId',
+      as: 'messages'
+    });
+
+    this.hasMany(models.PortfolioOffer, {
+      foreignKey: 'chatRoomId',
+      as: 'portfolioOffers'
+    });
+
+    this.hasMany(models.PortfolioInquiry, {
+      foreignKey: 'chatRoomId',
+      as: 'inquiries'
+    });
+
+    this.hasMany(models.ListingOffer, {
+      foreignKey: 'chatRoomId',
+      as: 'offers'
+    });
+  }
+}
+
+ChatRoom.init(
   {
     id: {
       type: DataTypes.BIGINT,
@@ -143,42 +181,5 @@ const ChatRoom = sequelize.define(
     ]
   }
 );
-
-ChatRoom.associate = (models) => {
-  ChatRoom.belongsTo(models.Portfolio, {
-    foreignKey: 'portfolio_id',
-    as: 'portfolio'
-  });
-
-  ChatRoom.belongsTo(models.User, {
-    foreignKey: 'consumer_id',
-    as: 'consumer'
-  });
-
-  ChatRoom.belongsTo(models.User, {
-    foreignKey: 'vendor_id',
-    as: 'vendor'
-  });
-
-  ChatRoom.hasMany(models.ChatMessage, {
-    foreignKey: 'chat_room_id',
-    as: 'messages'
-  });
-
-  ChatRoom.hasMany(models.PortfolioOffer, {
-    foreignKey: 'chat_room_id',
-    as: 'portfolioOffers'
-  });
-
-  ChatRoom.hasMany(models.PortfolioInquiry, {
-    foreignKey: 'chat_room_id',
-    as: 'inquiries'
-  });
-
-  ChatRoom.hasMany(models.ListingOffer, {
-    foreignKey: 'chat_room_id',
-    as: 'offers'
-  });
-};
 
 export default ChatRoom;

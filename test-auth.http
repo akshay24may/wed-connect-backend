@@ -1,0 +1,111 @@
+### WedConnect Authentication API Tests
+### Base URL
+@baseUrl = http://localhost:5000/api
+
+### 1. Register a new vendor
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "mobile": "9175113022",
+  "fullName": "John Doe",
+  "password": "SecurePass123",
+  "roleSlug": "vendor",
+  "email": "john@example.com"
+}
+
+### 2. Register a new consumer
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "mobile": "9876543210",
+  "fullName": "Jane Smith",
+  "password": "SecurePass456",
+  "roleSlug": "consumer",
+  "email": "jane@example.com"
+}
+
+### 3. Login with mobile and password
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "mobile": "9175113022",
+  "password": "SecurePass123"
+}
+
+### 4. Request OTP for login
+POST {{baseUrl}}/auth/otp/request
+Content-Type: application/json
+
+{
+  "mobile": "9175113022",
+  "type": "login"
+}
+
+### 5. Verify OTP (replace otpId and otp with actual values from step 4)
+POST {{baseUrl}}/auth/otp/verify
+Content-Type: application/json
+
+{
+  "mobile": "9175113022",
+  "otp": "123456",
+  "otpId": "replace-with-actual-otp-id"
+}
+
+### 6. Refresh Token (replace refreshToken with actual token from login)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "replace-with-actual-refresh-token"
+}
+
+### 7. Logout (replace token with actual access token)
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer replace-with-actual-access-token
+Content-Type: application/json
+
+{
+  "refreshToken": "replace-with-actual-refresh-token"
+}
+
+### 8. Request Password Reset OTP
+POST {{baseUrl}}/auth/password/reset-request
+Content-Type: application/json
+
+{
+  "mobile": "9175113022"
+}
+
+### 9. Reset Password (replace otpId and otp with actual values)
+POST {{baseUrl}}/auth/password/reset
+Content-Type: application/json
+
+{
+  "mobile": "9175113022",
+  "otp": "123456",
+  "otpId": "replace-with-actual-otp-id",
+  "newPassword": "NewSecurePass789"
+}
+
+### 10. Test invalid credentials
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "mobile": "9175113022",
+  "password": "WrongPassword"
+}
+
+### 11. Test duplicate registration
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "mobile": "9175113022",
+  "fullName": "Duplicate User",
+  "password": "SecurePass123",
+  "roleSlug": "vendor"
+}

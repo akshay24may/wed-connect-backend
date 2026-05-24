@@ -19,11 +19,11 @@ export default {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      listing_id: {
+      portfolio_id: {
         type: Sequelize.BIGINT,
         allowNull: false,
         references: {
-          model: 'listings',
+          model: 'portfolios',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -40,17 +40,16 @@ export default {
       }
     });
 
-    // Create indexes for performance
     await queryInterface.addIndex('user_favorites', ['user_id'], {
       name: 'idx_user_favorites_user_id'
     });
 
-    await queryInterface.addIndex('user_favorites', ['listing_id'], {
-      name: 'idx_user_favorites_listing_id'
+    await queryInterface.addIndex('user_favorites', ['portfolio_id'], {
+      name: 'idx_user_favorites_portfolio_id'
     });
 
-    await queryInterface.addIndex('user_favorites', ['user_id', 'listing_id'], {
-      name: 'idx_user_favorites_user_listing',
+    await queryInterface.addIndex('user_favorites', ['user_id', 'portfolio_id'], {
+      name: 'idx_user_favorites_user_portfolio',
       unique: true
     });
 

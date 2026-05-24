@@ -1,107 +1,93 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import sequelize from '#config/database.js';
 
-const UserFavorite = sequelize.define('UserFavorite', {
-  id: {
-    type: DataTypes.BIGINT,
-    primaryKey: true,
-    autoIncrement: true,
-    allowNull: false
-  },
-  userId: {
-    type: DataTypes.BIGINT,
-    allowNull: false,
-    field: 'user_id'
-  },
-  listingId: {
-    type: DataTypes.BIGINT,
-    allowNull: false,
-    field: 'listing_id'
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    field: 'created_at'
-  },
-  deletedAt: {
-    type: DataTypes.DATE,
-    allowNull: true,
-    field: 'deleted_at'
-  }
-}, {
-  tableName: 'user_favorites',
-  underscored: true,
-  timestamps: false, // We handle timestamps manually
-  paranoid: true, // Enable soft deletes
-  deletedAt: 'deletedAt',
-  indexes: [
-    {
-      fields: ['user_id']
-    },
-    {
-      fields: ['listing_id']
-    },
-    {
-      unique: true,
-      fields: ['user_id', 'listing_id']
-    },
-    {
-      fields: ['created_at']
-    },
-    {
-      fields: ['deleted_at']
-    }
-  ]
-});
-
-UserFavorite.addHook('afterCreate', async (favorite, options) => {
-  const { Listing } = await import('#models/index.js').then(m => m.default);
-  await Listing.increment('totalFavorites', {
-    by: 1,
-    where: { id: favorite.listingId },
-    transaction: options.transaction
-  });
-});
-
-UserFavorite.addHook('afterDestroy', async (favorite, options) => {
-  try {
-    const { Listing } = await import('#models/index.js').then(m => m.default);
-    await Listing.decrement('totalFavorites', {
-      by: 1,
-      where: { id: favorite.listingId },
-      transaction: options.transaction
+class UserFavorite extends Model {
+  static associate(models) {
+    this.belongsTo(models.User, {
+      foreignKey: 'user_id',
+      as: 'user'
     });
-  } catch (error) {
-    if (error.name === 'SequelizeDatabaseError' && error.parent?.constraint === 'check_total_favorites_non_negative') {
-      // Silently ignore constraint violation (already at 0)
-    } else {
-      throw error;
+
+    this.belongsTo(models.Portfolio, {
+      foreignKey: 'portfolio_id',
+      as: 'portfolio'
+    });
+  }
+}
+
+UserFavorite.init(
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false
+    },
+    userId: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      field: 'user_id'
+    },
+    portfolioId: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      field: 'portfolio_id'
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      field: 'created_at'
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'deleted_at'
+    }
+  },
+  {
+    sequelize,
+    tableName: 'user_favorites',
+    underscored: true,
+    timestamps: false,
+    paranoid: true,
+    deletedAt: 'deleted_at',
+    createdAt: 'created_at',
+    updatedAt: false,
+    hooks: {
+      afterCreate: async (favorite, options) => {
+        const { Portfolio } = await import('#models/index.js').then(m => m.default);
+        await Portfolio.increment('totalFavorites', {
+          by: 1,
+          where: { id: favorite.portfolioId },
+          transaction: options.transaction
+        });
+      },
+      afterDestroy: async (favorite, options) => {
+        try {
+          const { Portfolio } = await import('#models/index.js').then(m => m.default);
+          await Portfolio.decrement('totalFavorites', {
+            by: 1,
+            where: { id: favorite.portfolioId },
+            transaction: options.transaction
+          });
+        } catch (error) {
+          if (error.name === 'SequelizeDatabaseError' && error.parent?.constraint === 'check_total_favorites_non_negative') {
+            // Silently ignore constraint violation (already at 0)
+          } else {
+            throw error;
+          }
+        }
+      },
+      afterRestore: async (favorite, options) => {
+        const { Portfolio } = await import('#models/index.js').then(m => m.default);
+        await Portfolio.increment('totalFavorites', {
+          by: 1,
+          where: { id: favorite.portfolioId },
+          transaction: options.transaction
+        });
+      }
     }
   }
-});
-
-UserFavorite.addHook('afterRestore', async (favorite, options) => {
-  const { Listing } = await import('#models/index.js').then(m => m.default);
-  await Listing.increment('totalFavorites', {
-    by: 1,
-    where: { id: favorite.listingId },
-    transaction: options.transaction
-  });
-});
-
-// Define associations
-UserFavorite.associate = (models) => {
-  // Belongs to User
-  UserFavorite.belongsTo(models.User, {
-    foreignKey: 'userId',
-    as: 'user'
-  });
-
-  // Belongs to Listing
-  UserFavorite.belongsTo(models.Listing, {
-    foreignKey: 'listingId',
-    as: 'listing'
-  });
-};
+);
 
 export default UserFavorite;

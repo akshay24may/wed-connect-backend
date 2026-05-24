@@ -29,7 +29,7 @@ export async function up(queryInterface, Sequelize) {
         key: 'id'
       },
       onUpdate: 'CASCADE',
-      onDelete: 'SET NULL'
+      onDelete: 'CASCADE'
     },
     message_text: {
       type: Sequelize.TEXT,
@@ -51,15 +51,6 @@ export async function up(queryInterface, Sequelize) {
     thumbnail_url: {
       type: Sequelize.STRING(500),
       allowNull: true
-    },
-    mime_type: {
-      type: Sequelize.STRING(100),
-      allowNull: true
-    },
-    thumbnail_mime_type: {
-      type: Sequelize.STRING(100),
-      allowNull: true,
-      defaultValue: 'image/jpeg'
     },
     file_size_bytes: {
       type: Sequelize.BIGINT,

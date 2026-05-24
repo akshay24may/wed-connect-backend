@@ -1,10 +1,53 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import sequelize from '#config/database.js';
 import { generateUniqueSlug } from '#utils/customSlugify.js';
 import { getFullUrl } from '#utils/storageHelper.js';
 
-const Portfolio = sequelize.define(
-  'Portfolio',
+class Portfolio extends Model {
+  static associate(models) {
+    this.belongsTo(models.User, {
+      foreignKey: 'user_id',
+      as: 'user'
+    });
+
+    this.belongsTo(models.Category, {
+      foreignKey: 'category_id',
+      as: 'category'
+    });
+
+    this.belongsTo(models.State, {
+      foreignKey: 'state_id',
+      as: 'state'
+    });
+
+    this.belongsTo(models.City, {
+      foreignKey: 'city_id',
+      as: 'city'
+    });
+
+    this.hasMany(models.PortfolioMedia, {
+      foreignKey: 'portfolio_id',
+      as: 'media'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'approved_by',
+      as: 'approver'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'rejected_by',
+      as: 'rejecter'
+    });
+
+    this.belongsTo(models.UserSubscription, {
+      foreignKey: 'user_subscription_id',
+      as: 'userSubscription'
+    });
+  }
+}
+
+Portfolio.init(
   {
     id: {
       type: DataTypes.BIGINT,
@@ -24,7 +67,7 @@ const Portfolio = sequelize.define(
     },
     categorySlug: {
       type: DataTypes.STRING(100),
-      allowNull: true,
+      allowNull: false,
       field: 'category_slug'
     },
     userSubscriptionId: {
@@ -87,12 +130,12 @@ const Portfolio = sequelize.define(
     },
     stateSlug: {
       type: DataTypes.STRING(255),
-      allowNull: true,
+      allowNull: false,
       field: 'state_slug'
     },
     citySlug: {
       type: DataTypes.STRING(255),
-      allowNull: true,
+      allowNull: false,
       field: 'city_slug'
     },
     locality: {
@@ -104,16 +147,6 @@ const Portfolio = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
       field: 'address'
-    },
-    latitude: {
-      type: DataTypes.DECIMAL(10, 8),
-      allowNull: true,
-      field: 'latitude'
-    },
-    longitude: {
-      type: DataTypes.DECIMAL(11, 8),
-      allowNull: true,
-      field: 'longitude'
     },
     status: {
       type: DataTypes.ENUM('draft', 'pending', 'published', 'rejected'),
@@ -187,8 +220,7 @@ const Portfolio = sequelize.define(
       get() {
         const rawValue = this.getDataValue('coverImage');
         const storageType = this.getDataValue('coverImageStorageType');
-        const mimeType = this.getDataValue('coverImageMimeType');
-        return getFullUrl(rawValue, storageType, mimeType);
+        return getFullUrl(rawValue, storageType);
       }
     },
     coverImageStorageType: {
@@ -206,11 +238,6 @@ const Portfolio = sequelize.define(
       ),
       allowNull: true,
       field: 'cover_image_storage_type'
-    },
-    coverImageMimeType: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-      field: 'cover_image_mime_type'
     },
     isAutoApproved: {
       type: DataTypes.BOOLEAN,
@@ -305,47 +332,5 @@ const Portfolio = sequelize.define(
     }
   }
 );
-
-Portfolio.associate = (models) => {
-  Portfolio.belongsTo(models.User, {
-    foreignKey: 'user_id',
-    as: 'user'
-  });
-
-  Portfolio.belongsTo(models.Category, {
-    foreignKey: 'category_id',
-    as: 'category'
-  });
-
-  Portfolio.belongsTo(models.State, {
-    foreignKey: 'state_id',
-    as: 'state'
-  });
-
-  Portfolio.belongsTo(models.City, {
-    foreignKey: 'city_id',
-    as: 'city'
-  });
-
-  Portfolio.hasMany(models.PortfolioMedia, {
-    foreignKey: 'portfolio_id',
-    as: 'media'
-  });
-
-  Portfolio.belongsTo(models.User, {
-    foreignKey: 'approved_by',
-    as: 'approver'
-  });
-
-  Portfolio.belongsTo(models.User, {
-    foreignKey: 'rejected_by',
-    as: 'rejecter'
-  });
-
-  Portfolio.belongsTo(models.UserSubscription, {
-    foreignKey: 'user_subscription_id',
-    as: 'userSubscription'
-  });
-};
 
 export default Portfolio;

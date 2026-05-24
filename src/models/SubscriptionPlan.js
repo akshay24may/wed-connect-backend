@@ -1,7 +1,35 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
+import sequelize from '#config/database.js';
 
-export default (sequelize) => {
-  const SubscriptionPlan = sequelize.define('SubscriptionPlan', {
+class SubscriptionPlan extends Model {
+  static associate(models) {
+    // Self-referencing for plan replacement
+    this.belongsTo(models.SubscriptionPlan, {
+      foreignKey: 'replacedByPlanId',
+      as: 'replacementPlan'
+    });
+
+    // Category association
+    this.belongsTo(models.Category, {
+      foreignKey: 'categoryId',
+      as: 'category'
+    });
+
+    // Audit associations
+    this.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'creator'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'deletedBy',
+      as: 'deleter'
+    });
+  }
+}
+
+SubscriptionPlan.init(
+  {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -291,7 +319,8 @@ export default (sequelize) => {
       allowNull: true,
       field: 'deleted_by'
     }
-  }, {
+  },
+  {
     sequelize,
     tableName: 'subscription_plans',
     timestamps: true,
@@ -315,32 +344,7 @@ export default (sequelize) => {
         }
       }
     }
-  });
+  }
+);
 
-  SubscriptionPlan.associate = (models) => {
-    // Self-referencing for plan replacement
-    SubscriptionPlan.belongsTo(models.SubscriptionPlan, {
-      foreignKey: 'replacedByPlanId',
-      as: 'replacementPlan'
-    });
-
-    // Category association
-    SubscriptionPlan.belongsTo(models.Category, {
-      foreignKey: 'categoryId',
-      as: 'category'
-    });
-
-    // Audit associations
-    SubscriptionPlan.belongsTo(models.User, {
-      foreignKey: 'createdBy',
-      as: 'creator'
-    });
-
-    SubscriptionPlan.belongsTo(models.User, {
-      foreignKey: 'deletedBy',
-      as: 'deleter'
-    });
-  };
-
-  return SubscriptionPlan;
-};
+export default SubscriptionPlan;

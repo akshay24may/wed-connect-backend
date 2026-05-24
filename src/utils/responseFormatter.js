@@ -1,137 +1,85 @@
-/**
- * Standardized API response formatters
- * All responses follow a consistent structure with success, message, and data fields
- */
-
-/**
- * Success response (200)
- * @param {Object} res - Express response object
- * @param {*} data - Response data
- * @param {string} message - Success message
- */
-export const successResponse = (res, data, message = 'Success') => {
+export const successResponse = (res, data = null, message = 'Success', code = 'SUCCESS') => {
   return res.status(200).json({
     success: true,
+    code,
     message,
     data
   });
 };
 
-/**
- * Created response (201)
- * @param {Object} res - Express response object
- * @param {*} data - Response data
- * @param {string} message - Success message
- */
-export const createResponse = (res, data, message = 'Resource created successfully') => {
+export const createResponse = (res, data = null, message = 'Created successfully', code = 'CREATED') => {
   return res.status(201).json({
     success: true,
+    code,
     message,
     data
   });
 };
 
-/**
- * Error response with custom status code
- * @param {Object} res - Express response object
- * @param {string} message - Error message
- * @param {number} statusCode - HTTP status code (default: 500)
- */
-export const errorResponse = (res, message = 'Internal server error', statusCode = 500) => {
+export const errorResponse = (res, message = 'Error occurred', statusCode = 500, code = 'INTERNAL_ERROR') => {
   return res.status(statusCode).json({
     success: false,
-    message,
-    data: null
+    code,
+    message
   });
 };
 
-/**
- * Not found response (404)
- * @param {Object} res - Express response object
- * @param {string} message - Not found message
- */
-export const notFoundResponse = (res, message = 'Resource not found') => {
-  return res.status(404).json({
+export const validationErrorResponse = (res, errors, message = 'Validation failed', code = 'VALIDATION_ERROR') => {
+  return res.status(400).json({
     success: false,
+    code,
     message,
-    data: null
+    errors
   });
 };
 
-/**
- * Unauthorized response (401)
- * @param {Object} res - Express response object
- * @param {string} message - Unauthorized message
- */
-export const unauthorizedResponse = (res, message = 'Unauthorized access') => {
+export const unauthorizedResponse = (res, message = 'Unauthorized access', code = 'UNAUTHORIZED') => {
   return res.status(401).json({
     success: false,
-    message,
-    data: null
+    code,
+    message
   });
 };
 
-/**
- * Forbidden response (403)
- * @param {Object} res - Express response object
- * @param {string} message - Forbidden message
- */
-export const forbiddenResponse = (res, message = 'Access forbidden') => {
+export const forbiddenResponse = (res, message = 'Access forbidden', code = 'FORBIDDEN') => {
   return res.status(403).json({
     success: false,
-    message,
-    data: null
+    code,
+    message
   });
 };
 
-/**
- * Payment required response (402)
- * @param {Object} res - Express response object
- * @param {string} message - Payment required message
- * @param {*} data - Optional data (e.g., saved draft listing)
- */
-export const paymentRequiredResponse = (res, message = 'Payment required', data = null) => {
-  return res.status(402).json({
+export const notFoundResponse = (res, message = 'Resource not found', code = 'NOT_FOUND') => {
+  return res.status(404).json({
     success: false,
-    message,
-    data
+    code,
+    message
   });
 };
 
-/**
- * Validation error response (422)
- * @param {Object} res - Express response object
- * @param {Array|Object} errors - Validation errors
- */
-export const validationErrorResponse = (res, errors) => {
-  return res.status(422).json({
+export const conflictResponse = (res, message = 'Resource already exists', code = 'CONFLICT') => {
+  return res.status(409).json({
     success: false,
-    message: 'Validation failed',
-    data: { errors }
+    code,
+    message
   });
 };
 
-/**
- * Paginated response (200)
- * @param {Object} res - Express response object
- * @param {*} data - Response data
- * @param {Object} pagination - Pagination metadata
- * @param {number} pagination.page - Current page number
- * @param {number} pagination.limit - Items per page
- * @param {number} pagination.total - Total number of items
- * @param {number} pagination.totalPages - Total number of pages
- * @param {string} message - Success message
- */
-export const paginatedResponse = (res, data, pagination, message = 'Success') => {
+export const paginatedResponse = (res, data, pagination, message = 'Data retrieved successfully', code = 'SUCCESS') => {
   return res.status(200).json({
     success: true,
+    code,
     message,
-    data,
-    pagination: {
-      page: pagination.page,
-      limit: pagination.limit,
-      total: pagination.total,
-      totalPages: pagination.totalPages
+    data: {
+      items: data,
+      pagination: {
+        page: pagination.page,
+        limit: pagination.limit,
+        totalPages: pagination.totalPages,
+        totalItems: pagination.totalItems,
+        hasNext: pagination.page < pagination.totalPages,
+        hasPrev: pagination.page > 1
+      }
     }
   });
 };
