@@ -4,6 +4,23 @@
 
 **Ignore `old_project/` folder** - This is reference material only and should not be considered part of the active codebase.
 
+## 🚨 CRITICAL: ID Conventions
+
+**DO NOT use UUIDs for any table primary keys or foreign keys in this project.**
+
+All IDs must be auto-incrementing integers (INT or BIGINT) based on expected table volume.
+
+### Use BIGINT for High-Volume Tables
+- User-generated content tables
+- Transaction/activity tables
+- Communication tables
+- Media/file tables
+
+### Use INT for Low-Volume Tables
+- Configuration/lookup tables
+- Admin-managed tables
+- Reference data tables
+
 ## Folder Organization
 
 ```

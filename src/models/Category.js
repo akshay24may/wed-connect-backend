@@ -1,9 +1,17 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import sequelize from '#config/database.js';
 import { getFullUrl } from '#utils/storageHelper.js';
 
-const Category = sequelize.define(
-  'Category',
+class Category extends Model {
+  static associate(models) {
+    this.hasMany(models.Listing, {
+      foreignKey: 'categoryId',
+      as: 'listings'
+    });
+  }
+}
+
+Category.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -35,14 +43,8 @@ const Category = sequelize.define(
       get() {
         const rawValue = this.getDataValue('icon');
         const storageType = this.getDataValue('storageType');
-        const mimeType = this.getDataValue('iconMimeType');
-        return getFullUrl(rawValue, storageType, mimeType);
+        return getFullUrl(rawValue, storageType);
       }
-    },
-    iconMimeType: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      field: 'icon_mime_type'
     },
     bannerImage: {
       type: DataTypes.STRING(500),
@@ -51,14 +53,8 @@ const Category = sequelize.define(
       get() {
         const rawValue = this.getDataValue('bannerImage');
         const storageType = this.getDataValue('storageType');
-        const mimeType = this.getDataValue('bannerMimeType');
-        return getFullUrl(rawValue, storageType, mimeType);
+        return getFullUrl(rawValue, storageType);
       }
-    },
-    bannerMimeType: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      field: 'banner_mime_type'
     },
     storageType: {
       type: DataTypes.ENUM(
@@ -152,12 +148,5 @@ const Category = sequelize.define(
     deletedAt: 'deleted_at'
   }
 );
-
-Category.associate = (models) => {
-  Category.hasMany(models.Listing, {
-    foreignKey: 'category_id',
-    as: 'listings'
-  });
-};
 
 export default Category;

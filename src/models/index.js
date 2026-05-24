@@ -5,28 +5,25 @@ import City from './City.js';
 import Role from './Role.js';
 import Permission from './Permission.js';
 import RolePermission from './RolePermission.js';
-import UserModel from './User.js';
-import UserProfileModel from './UserProfile.js';
-import UserSessionModel from './UserSession.js';
-import UserSocialAccountModel from './UserSocialAccount.js';
-import SubscriptionPlanModel from './SubscriptionPlan.js';
-import UserSubscriptionModel from './UserSubscription.js';
-import CarBrand from './CarBrand.js';
-import CarModel from './CarModel.js';
-import CarVariant from './CarVariant.js';
-import CarSpecification from './CarSpecification.js';
+import User from './User.js';
+import UserSession from './UserSession.js';
+import UserSocialAccount from './UserSocialAccount.js';
+import SubscriptionPlan from './SubscriptionPlan.js';
+import UserSubscription from './UserSubscription.js';
 import DataRequest from './DataRequest.js';
 import Category from './Category.js';
 import Portfolio from './Portfolio.js';
 import PortfolioMedia from './PortfolioMedia.js';
+import PortfolioAlbum from './PortfolioAlbum.js';
+import PortfolioReview from './PortfolioReview.js';
 import PortfolioInquiry from './PortfolioInquiry.js';
 import PortfolioOffer from './PortfolioOffer.js';
 import ModerationReport from './ModerationReport.js';
 import ChatRoom from './ChatRoom.js';
 import ChatMessage from './ChatMessage.js';
 import ListingOffer from './ListingOffer.js';
-import InvoiceModel from './Invoice.js';
-import TransactionModel from './Transaction.js';
+import Invoice from './Invoice.js';
+import Transaction from './Transaction.js';
 import UserFavorite from './UserFavorite.js';
 import UserActivityLog from './UserActivityLog.js';
 import UserLocationPreference from './UserLocationPreference.js';
@@ -35,16 +32,7 @@ import UserNotificationPreference from './UserNotificationPreference.js';
 import OtherMedia from './OtherMedia.js';
 import OtpVerification from './OtpVerification.js';
 import UserSearch from './UserSearch.js';
-
-// Initialize models
-const User = UserModel(sequelize);
-const UserProfile = UserProfileModel(sequelize);
-const UserSession = UserSessionModel(sequelize);
-const UserSocialAccount = UserSocialAccountModel(sequelize);
-const SubscriptionPlan = SubscriptionPlanModel(sequelize);
-const UserSubscription = UserSubscriptionModel(sequelize);
-const Invoice = InvoiceModel(sequelize);
-const Transaction = TransactionModel(sequelize);
+import VendorProfile from './VendorProfile.js';
 
 const models = {
   Country,
@@ -54,21 +42,18 @@ const models = {
   Permission,
   RolePermission,
   User,
-  UserProfile,
   UserSession,
   UserSocialAccount,
   SubscriptionPlan,
   UserSubscription,
   Invoice,
   Transaction,
-  CarBrand,
-  CarModel,
-  CarVariant,
-  CarSpecification,
   DataRequest,
   Category,
   Portfolio,
   PortfolioMedia,
+  PortfolioAlbum,
+  PortfolioReview,
   PortfolioInquiry,
   PortfolioOffer,
   ModerationReport,
@@ -82,7 +67,8 @@ const models = {
   UserNotificationPreference,
   OtherMedia,
   OtpVerification,
-  UserSearch
+  UserSearch,
+  VendorProfile
 };
 
 // Set up associations
@@ -127,7 +113,6 @@ City.associate(models);
 
 // User associations
 User.associate(models);
-UserProfile.associate(models);
 UserSession.associate(models);
 UserSocialAccount.associate(models);
 
@@ -136,12 +121,6 @@ SubscriptionPlan.associate(models);
 
 // UserSubscription associations
 UserSubscription.associate(models);
-
-// Car associations
-CarBrand.associate(models);
-CarModel.associate(models);
-CarVariant.associate(models);
-CarSpecification.associate(models);
 
 // Data request associations
 DataRequest.associate(models);
@@ -152,6 +131,8 @@ Category.associate(models);
 // Portfolio associations
 Portfolio.associate(models);
 PortfolioMedia.associate(models);
+PortfolioAlbum.associate(models);
+PortfolioReview.associate(models);
 PortfolioInquiry.associate(models);
 PortfolioOffer.associate(models);
 
@@ -181,6 +162,9 @@ ModerationReport.associate(models);
 
 // UserSearch associations
 UserSearch.associate(models);
+
+// VendorProfile associations
+VendorProfile.associate(models);
 
 export { sequelize };
 export default models;

@@ -1,95 +1,146 @@
 import { verifyAccessToken } from '#utils/jwtHelper.js';
+import { unauthorizedResponse, forbiddenResponse } from '#utils/responseFormatter.js';
 import { ERROR_MESSAGES } from '#utils/constants/messages.js';
 
-/**
- * Verify JWT access token and attach user data to request
- */
 export const authenticate = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        message: ERROR_MESSAGES.UNAUTHORIZED,
-        data: null,
-        timestamp: new Date().toISOString()
-      });
+      return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
     }
 
     const token = authHeader.substring(7);
-    const decoded = verifyAccessToken(token);
 
-    // Attach user data to request
-    req.user = decoded;
-    next();
+    try {
+      const decoded = verifyAccessToken(token);
+      req.user = decoded;
+      next();
+    } catch (error) {
+      if (error.message.includes('expired')) {
+        return unauthorizedResponse(res, ERROR_MESSAGES.TOKEN_EXPIRED);
+      }
+      return unauthorizedResponse(res, ERROR_MESSAGES.TOKEN_INVALID);
+    }
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.message,
-      data: null,
-      timestamp: new Date().toISOString()
-    });
+    console.error('Authentication error:', error);
+    return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
   }
 };
 
-/**
- * Optional authentication - attaches user data if token is present, but doesn't fail if missing
- * Used for endpoints that work for both authenticated and unauthenticated users
- */
-export const optionalAuthenticate = (req, res, next) => {
+export const optionalAuth = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    // If no auth header, continue without user data
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       req.user = null;
       return next();
     }
 
     const token = authHeader.substring(7);
-    const decoded = verifyAccessToken(token);
 
-    // Attach user data to request
-    req.user = decoded;
+    try {
+      const decoded = verifyAccessToken(token);
+      req.user = decoded;
+    } catch (error) {
+      req.user = null;
+    }
+
     next();
   } catch (error) {
-    // If token is invalid, continue without user data (don't fail)
     req.user = null;
     next();
   }
 };
 
-/**
- * Check if user has required role
- * @param {Array<string>} allowedRoles - Array of allowed role slugs
- */
-export const authorize = (allowedRoles = []) => {
+export const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: ERROR_MESSAGES.UNAUTHORIZED,
-        data: null,
-        timestamp: new Date().toISOString()
-      });
+      return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
     }
 
-    // Super admin has access to everything
-    if (req.user.roleSlug === 'super_admin') {
-      return next();
-    }
-
-    // Check if user's role is in allowed roles
-    if (allowedRoles.length > 0 && !allowedRoles.includes(req.user.roleSlug)) {
-      return res.status(403).json({
-        success: false,
-        message: ERROR_MESSAGES.INSUFFICIENT_PERMISSIONS,
-        data: null,
-        timestamp: new Date().toISOString()
-      });
+    if (!allowedRoles.includes(req.user.roleSlug)) {
+      return forbiddenResponse(res, ERROR_MESSAGES.INSUFFICIENT_PERMISSIONS);
     }
 
     next();
   };
+};
+
+export const requireAnyRole = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
+    }
+
+    const hasRole = allowedRoles.some(role => req.user.roleSlug === role);
+    
+    if (!hasRole) {
+      return forbiddenResponse(res, ERROR_MESSAGES.INSUFFICIENT_PERMISSIONS);
+    }
+
+    next();
+  };
+};
+
+export const isSuperAdmin = (req, res, next) => {
+  if (!req.user) {
+    return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
+  }
+
+  if (req.user.roleSlug !== 'super_admin') {
+    return forbiddenResponse(res, ERROR_MESSAGES.INSUFFICIENT_PERMISSIONS);
+  }
+
+  next();
+};
+
+export const isAdmin = (req, res, next) => {
+  if (!req.user) {
+    return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
+  }
+
+  const adminRoles = ['super_admin', 'admin'];
+  if (!adminRoles.includes(req.user.roleSlug)) {
+    return forbiddenResponse(res, ERROR_MESSAGES.INSUFFICIENT_PERMISSIONS);
+  }
+
+  next();
+};
+
+export const isPanelUser = (req, res, next) => {
+  if (!req.user) {
+    return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
+  }
+
+  const panelRoles = ['super_admin', 'admin', 'marketing', 'seo', 'accountant'];
+  if (!panelRoles.includes(req.user.roleSlug)) {
+    return forbiddenResponse(res, ERROR_MESSAGES.INSUFFICIENT_PERMISSIONS);
+  }
+
+  next();
+};
+
+export const isVendor = (req, res, next) => {
+  if (!req.user) {
+    return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
+  }
+
+  if (req.user.roleSlug !== 'vendor') {
+    return forbiddenResponse(res, ERROR_MESSAGES.INSUFFICIENT_PERMISSIONS);
+  }
+
+  next();
+};
+
+export const isConsumer = (req, res, next) => {
+  if (!req.user) {
+    return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
+  }
+
+  if (req.user.roleSlug !== 'consumer') {
+    return forbiddenResponse(res, ERROR_MESSAGES.INSUFFICIENT_PERMISSIONS);
+  }
+
+  next();
 };

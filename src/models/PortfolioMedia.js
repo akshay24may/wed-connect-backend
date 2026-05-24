@@ -1,9 +1,22 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import sequelize from '#config/database.js';
 import { getFullUrl } from '#utils/storageHelper.js';
 
-const PortfolioMedia = sequelize.define(
-  'PortfolioMedia',
+class PortfolioMedia extends Model {
+  static associate(models) {
+    this.belongsTo(models.Portfolio, {
+      foreignKey: 'portfolio_id',
+      as: 'portfolio'
+    });
+
+    this.belongsTo(models.PortfolioAlbum, {
+      foreignKey: 'albumId',
+      as: 'album'
+    });
+  }
+}
+
+PortfolioMedia.init(
   {
     id: {
       type: DataTypes.BIGINT,
@@ -15,6 +28,11 @@ const PortfolioMedia = sequelize.define(
       type: DataTypes.BIGINT,
       allowNull: false,
       field: 'portfolio_id'
+    },
+    albumId: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      field: 'album_id'
     },
     mediaType: {
       type: DataTypes.ENUM('image', 'video'),
@@ -29,8 +47,7 @@ const PortfolioMedia = sequelize.define(
       get() {
         const rawValue = this.getDataValue('mediaUrl');
         const storageType = this.getDataValue('storageType');
-        const mimeType = this.getDataValue('mimeType');
-        return getFullUrl(rawValue, storageType, mimeType);
+        return getFullUrl(rawValue, storageType);
       }
     },
     thumbnailUrl: {
@@ -40,21 +57,8 @@ const PortfolioMedia = sequelize.define(
       get() {
         const rawValue = this.getDataValue('thumbnailUrl');
         const storageType = this.getDataValue('storageType');
-        const thumbnailMimeType = this.getDataValue('thumbnailMimeType');
-        return getFullUrl(rawValue, storageType, thumbnailMimeType);
+        return getFullUrl(rawValue, storageType);
       }
-    },
-    mimeType: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      field: 'mime_type',
-      defaultValue: 'image/jpeg'
-    },
-    thumbnailMimeType: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-      field: 'thumbnail_mime_type',
-      defaultValue: 'image/jpeg'
     },
     fileSizeBytes: {
       type: DataTypes.BIGINT,
@@ -122,12 +126,5 @@ const PortfolioMedia = sequelize.define(
     deletedAt: 'deleted_at'
   }
 );
-
-PortfolioMedia.associate = (models) => {
-  PortfolioMedia.belongsTo(models.Portfolio, {
-    foreignKey: 'portfolio_id',
-    as: 'portfolio'
-  });
-};
 
 export default PortfolioMedia;

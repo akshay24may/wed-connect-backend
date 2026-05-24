@@ -1,14 +1,35 @@
-/**
- * ChatMessage Model
- * Messages in chat rooms (text, image, location, system)
- */
-
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import sequelize from '#config/database.js';
 import { getFullUrl } from '#utils/storageHelper.js';
 
-const ChatMessage = sequelize.define(
-  'ChatMessage',
+class ChatMessage extends Model {
+  static associate(models) {
+    // Belongs to ChatRoom
+    this.belongsTo(models.ChatRoom, {
+      foreignKey: 'chatRoomId',
+      as: 'chatRoom'
+    });
+
+    // Belongs to User (Sender)
+    this.belongsTo(models.User, {
+      foreignKey: 'senderId',
+      as: 'sender'
+    });
+
+    // Self-referencing for replies
+    this.belongsTo(models.ChatMessage, {
+      foreignKey: 'replyToMessageId',
+      as: 'replyToMessage'
+    });
+
+    this.hasMany(models.ChatMessage, {
+      foreignKey: 'replyToMessageId',
+      as: 'replies'
+    });
+  }
+}
+
+ChatMessage.init(
   {
     id: {
       type: DataTypes.BIGINT,
@@ -50,8 +71,7 @@ const ChatMessage = sequelize.define(
         const rawValue = this.getDataValue('mediaUrl');
         if (!rawValue) return null;
         const storageType = this.getDataValue('storageType');
-        const mimeType = this.getDataValue('mimeType');
-        return getFullUrl(rawValue, storageType, mimeType);
+        return getFullUrl(rawValue, storageType);
       }
     },
     thumbnailUrl: {
@@ -62,20 +82,8 @@ const ChatMessage = sequelize.define(
         const rawValue = this.getDataValue('thumbnailUrl');
         if (!rawValue) return null;
         const storageType = this.getDataValue('storageType');
-        const thumbnailMimeType = this.getDataValue('thumbnailMimeType');
-        return getFullUrl(rawValue, storageType, thumbnailMimeType);
+        return getFullUrl(rawValue, storageType);
       }
-    },
-    mimeType: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-      field: 'mime_type'
-    },
-    thumbnailMimeType: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-      field: 'thumbnail_mime_type',
-      defaultValue: 'image/jpeg'
     },
     fileSizeBytes: {
       type: DataTypes.BIGINT,
@@ -178,31 +186,5 @@ const ChatMessage = sequelize.define(
     }
   }
 );
-
-// Define associations
-ChatMessage.associate = (models) => {
-  // Belongs to ChatRoom
-  ChatMessage.belongsTo(models.ChatRoom, {
-    foreignKey: 'chat_room_id',
-    as: 'chatRoom'
-  });
-
-  // Belongs to User (Sender)
-  ChatMessage.belongsTo(models.User, {
-    foreignKey: 'sender_id',
-    as: 'sender'
-  });
-
-  // Self-referencing for replies
-  ChatMessage.belongsTo(models.ChatMessage, {
-    foreignKey: 'reply_to_message_id',
-    as: 'replyToMessage'
-  });
-
-  ChatMessage.hasMany(models.ChatMessage, {
-    foreignKey: 'reply_to_message_id',
-    as: 'replies'
-  });
-};
 
 export default ChatMessage;

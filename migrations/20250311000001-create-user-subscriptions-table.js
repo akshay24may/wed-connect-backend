@@ -122,87 +122,13 @@ export async function up(queryInterface, Sequelize) {
       defaultValue: 0,
       comment: 'Snapshot: Max published portfolios'
     },
-    portfolios_quota_rolling_days: {
-      type: Sequelize.INTEGER,
-      allowNull: true,
-      comment: 'Snapshot: Rolling window period in days'
-    },
-    max_storage_mb: {
-      type: Sequelize.INTEGER,
-      allowNull: true,
-      comment: 'Snapshot: Maximum storage in MB for all portfolio media (null = unlimited)'
-    },
-    // Featured & Promotional Snapshot
     max_featured_portfolios: {
       type: Sequelize.INTEGER,
       allowNull: false,
       defaultValue: 0,
       comment: 'Snapshot: Max featured portfolios'
     },
-    max_homepage_portfolios: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      comment: 'Snapshot: Max homepage portfolios'
-    },
-    featured_days: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      comment: 'Snapshot: Featured duration'
-    },
-    homepage_days: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      comment: 'Snapshot: Homepage duration'
-    },
-    // Visibility & Priority Snapshot
-    priority_score: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      comment: 'Snapshot: Priority score'
-    },
-    search_boost_multiplier: {
-      type: Sequelize.DECIMAL(5, 2),
-      allowNull: false,
-      defaultValue: 1.0,
-      comment: 'Snapshot: Search boost multiplier'
-    },
-    national_visibility: {
-      type: Sequelize.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-      comment: 'Snapshot: National visibility flag'
-    },
-    // Portfolio Management Snapshot
-    is_auto_approve_enabled: {
-      type: Sequelize.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-      comment: 'Snapshot: auto-approve setting from plan'
-    },
-    // Republish Settings Snapshot
-    max_republish_count: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      comment: 'Snapshot: Maximum times a portfolio can be republished (0 = unlimited)'
-    },
-    republish_cooldown_days: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      defaultValue: 7,
-      comment: 'Snapshot: Minimum days required between consecutive republishes'
-    },
-    // Support Snapshot
-    support_level: {
-      type: Sequelize.STRING(20),
-      allowNull: false,
-      defaultValue: 'standard'
-    },
-    // Features Snapshot
+    // Features Snapshot (includes all other plan settings)
     features: {
       type: Sequelize.JSON,
       allowNull: false,
@@ -211,7 +137,13 @@ export async function up(queryInterface, Sequelize) {
     // Payment Reference
     invoice_id: {
       type: Sequelize.BIGINT,
-      allowNull: true
+      allowNull: true,
+      references: {
+        model: 'invoices',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
     },
     payment_method: {
       type: Sequelize.STRING(50),

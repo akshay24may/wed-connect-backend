@@ -1,9 +1,30 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
+import sequelize from '#config/database.js';
 
-export default (sequelize) => {
-  const Invoice = sequelize.define(
-    'Invoice',
-    {
+class Invoice extends Model {
+  static associate(models) {
+    // Belongs to User
+    this.belongsTo(models.User, {
+      foreignKey: 'userId',
+      as: 'user'
+    });
+
+    // Belongs to UserSubscription
+    this.belongsTo(models.UserSubscription, {
+      foreignKey: 'subscriptionId',
+      as: 'subscription'
+    });
+
+    // Has many Transactions
+    this.hasMany(models.Transaction, {
+      foreignKey: 'invoiceId',
+      as: 'transactions'
+    });
+  }
+}
+
+Invoice.init(
+  {
       id: {
         type: DataTypes.BIGINT,
         primaryKey: true,
@@ -245,37 +266,17 @@ export default (sequelize) => {
         allowNull: true,
         field: 'deleted_by'
       }
-    },
-    {
-      tableName: 'invoices',
-      underscored: true,
-      paranoid: true,
-      timestamps: true,
-      createdAt: 'created_at',
-      updatedAt: 'updated_at',
-      deletedAt: 'deleted_at'
-    }
-  );
+  },
+  {
+    sequelize,
+    tableName: 'invoices',
+    underscored: true,
+    paranoid: true,
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    deletedAt: 'deleted_at'
+  }
+);
 
-  Invoice.associate = (models) => {
-    // Belongs to User
-    Invoice.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'user'
-    });
-
-    // Belongs to UserSubscription
-    Invoice.belongsTo(models.UserSubscription, {
-      foreignKey: 'subscription_id',
-      as: 'subscription'
-    });
-
-    // Has many Transactions
-    Invoice.hasMany(models.Transaction, {
-      foreignKey: 'invoice_id',
-      as: 'transactions'
-    });
-  };
-
-  return Invoice;
-};
+export default Invoice;

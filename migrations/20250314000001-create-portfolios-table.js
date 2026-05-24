@@ -28,7 +28,7 @@ export async function up(queryInterface, Sequelize) {
     },
     category_slug: {
       type: Sequelize.STRING(100),
-      allowNull: true,
+      allowNull: false,
       references: {
         model: "categories",
         key: "slug",
@@ -103,11 +103,11 @@ export async function up(queryInterface, Sequelize) {
     },
     state_slug: {
       type: Sequelize.STRING(255),
-      allowNull: true,
+      allowNull: false,
     },
     city_slug: {
       type: Sequelize.STRING(255),
-      allowNull: true,
+      allowNull: false,
     },
     locality: {
       type: Sequelize.STRING(200),
@@ -115,14 +115,6 @@ export async function up(queryInterface, Sequelize) {
     },
     address: {
       type: Sequelize.TEXT,
-      allowNull: true,
-    },
-    latitude: {
-      type: Sequelize.DECIMAL(10, 8),
-      allowNull: true,
-    },
-    longitude: {
-      type: Sequelize.DECIMAL(11, 8),
       allowNull: true,
     },
     status: {
@@ -212,10 +204,6 @@ export async function up(queryInterface, Sequelize) {
         "external",
         "other"
       ),
-      allowNull: true,
-    },
-    cover_image_mime_type: {
-      type: Sequelize.STRING(100),
       allowNull: true,
     },
     is_auto_approved: {

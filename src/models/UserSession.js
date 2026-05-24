@@ -1,7 +1,17 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
+import sequelize from '#config/database.js';
 
-export default (sequelize) => {
-  const UserSession = sequelize.define('UserSession', {
+class UserSession extends Model {
+  static associate(models) {
+    this.belongsTo(models.User, {
+      foreignKey: 'userId',
+      as: 'user'
+    });
+  }
+}
+
+UserSession.init(
+  {
     id: {
       type: DataTypes.BIGINT,
       primaryKey: true,
@@ -70,19 +80,16 @@ export default (sequelize) => {
       allowNull: true,
       field: 'expires_at'
     }
-  }, {
+  },
+  {
+    sequelize,
     tableName: 'user_sessions',
     timestamps: true,
     underscored: true,
-    paranoid: false
-  });
+    paranoid: false,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
+  }
+);
 
-  UserSession.associate = (models) => {
-    UserSession.belongsTo(models.User, {
-      foreignKey: 'userId',
-      as: 'user'
-    });
-  };
-
-  return UserSession;
-};
+export default UserSession;

@@ -1,9 +1,42 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
+import sequelize from '#config/database.js';
 
-export default (sequelize) => {
-  const Transaction = sequelize.define(
-    'Transaction',
-    {
+class Transaction extends Model {
+  static associate(models) {
+    // Belongs to Invoice
+    this.belongsTo(models.Invoice, {
+      foreignKey: 'invoiceId',
+      as: 'invoice'
+    });
+
+    // Belongs to UserSubscription
+    this.belongsTo(models.UserSubscription, {
+      foreignKey: 'subscriptionId',
+      as: 'subscription'
+    });
+
+    // Belongs to User
+    this.belongsTo(models.User, {
+      foreignKey: 'userId',
+      as: 'user'
+    });
+
+    // Belongs to SubscriptionPlan
+    this.belongsTo(models.SubscriptionPlan, {
+      foreignKey: 'subscriptionPlanId',
+      as: 'plan'
+    });
+
+    // Verified by User
+    this.belongsTo(models.User, {
+      foreignKey: 'verifiedBy',
+      as: 'verifier'
+    });
+  }
+}
+
+Transaction.init(
+  {
       id: {
         type: DataTypes.BIGINT,
         primaryKey: true,
@@ -221,49 +254,17 @@ export default (sequelize) => {
         allowNull: true,
         field: 'deleted_by'
       }
-    },
-    {
-      tableName: 'transactions',
-      underscored: true,
-      paranoid: true,
-      timestamps: true,
-      createdAt: 'created_at',
-      updatedAt: 'updated_at',
-      deletedAt: 'deleted_at'
-    }
-  );
+  },
+  {
+    sequelize,
+    tableName: 'transactions',
+    underscored: true,
+    paranoid: true,
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    deletedAt: 'deleted_at'
+  }
+);
 
-  Transaction.associate = (models) => {
-    // Belongs to Invoice
-    Transaction.belongsTo(models.Invoice, {
-      foreignKey: 'invoice_id',
-      as: 'invoice'
-    });
-
-    // Belongs to UserSubscription
-    Transaction.belongsTo(models.UserSubscription, {
-      foreignKey: 'subscription_id',
-      as: 'subscription'
-    });
-
-    // Belongs to User
-    Transaction.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'user'
-    });
-
-    // Belongs to SubscriptionPlan
-    Transaction.belongsTo(models.SubscriptionPlan, {
-      foreignKey: 'subscription_plan_id',
-      as: 'plan'
-    });
-
-    // Verified by User
-    Transaction.belongsTo(models.User, {
-      foreignKey: 'verified_by',
-      as: 'verifier'
-    });
-  };
-
-  return Transaction;
-};
+export default Transaction;

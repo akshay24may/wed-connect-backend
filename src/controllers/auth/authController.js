@@ -1,122 +1,196 @@
 import authService from '#services/authService.js';
-import { 
-  createResponse, 
-  successResponse, 
-  errorResponse 
+import {
+  successResponse,
+  createResponse,
+  errorResponse,
+  unauthorizedResponse,
+  validationErrorResponse
 } from '#utils/responseFormatter.js';
 
 class AuthController {
-  static async signup(req, res) {
+  static async register(req, res) {
     try {
-      const deviceInfo = {
-        deviceName: req.body.device_name,
-        userAgent: req.headers['user-agent'],
-        ipAddressV4: req.ip || req.connection.remoteAddress
-      };
-      
-      const result = await authService.signup(req.body, deviceInfo);
-      return res.status(201).json(result);
-    } catch (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.message,
-        data: null,
-        timestamp: new Date().toISOString()
+      const { mobile, fullName, password, roleSlug, email } = req.body;
+
+      if (!mobile || !fullName || !password) {
+        return validationErrorResponse(res, null, 'Mobile, full name, and password are required');
+      }
+
+      if (password.length < 6) {
+        return validationErrorResponse(res, null, 'Password must be at least 6 characters long');
+      }
+
+      const result = await authService.register({
+        mobile,
+        fullName,
+        password,
+        roleSlug: roleSlug || 'consumer',
+        email
       });
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 400, 'REGISTRATION_FAILED');
+      }
+
+      return createResponse(res, result.data, result.message);
+    } catch (error) {
+      console.error('Register error:', error);
+      return errorResponse(res, 'Registration failed', 500);
     }
   }
 
   static async login(req, res) {
     try {
-      const deviceInfo = {
-        deviceName: req.body.device_name,
-        userAgent: req.headers['user-agent'],
-        ipAddressV4: req.ip || req.connection.remoteAddress
-      };
-      
-      const result = await authService.login(req.body, deviceInfo);
-      return res.status(200).json(result);
-    } catch (error) {
-      return res.status(401).json({
-        success: false,
-        message: error.message,
-        data: null,
-        timestamp: new Date().toISOString()
-      });
-    }
-  }
+      const { mobile, password } = req.body;
 
-  static async getProfile(req, res) {
-    try {
-      const result = await authService.getProfile(req.user.userId);
-      return res.status(200).json(result);
+      if (!mobile || !password) {
+        return validationErrorResponse(res, null, 'Mobile and password are required');
+      }
+
+      const result = await authService.login({ mobile, password });
+
+      if (!result.success) {
+        return unauthorizedResponse(res, result.message);
+      }
+
+      return successResponse(res, result.data, result.message);
     } catch (error) {
-      return res.status(404).json({
-        success: false,
-        message: error.message,
-        data: null,
-        timestamp: new Date().toISOString()
-      });
+      console.error('Login error:', error);
+      return errorResponse(res, 'Login failed', 500);
     }
   }
 
   static async refreshToken(req, res) {
     try {
-      const { refresh_token } = req.body;
-      const result = await authService.refreshToken(refresh_token);
-      return res.status(200).json(result);
+      const { refreshToken } = req.body;
+
+      if (!refreshToken) {
+        return validationErrorResponse(res, null, 'Refresh token is required');
+      }
+
+      const result = await authService.refreshToken({ refreshToken });
+
+      if (!result.success) {
+        return unauthorizedResponse(res, result.message);
+      }
+
+      return successResponse(res, result.data, result.message);
     } catch (error) {
-      return res.status(401).json({
-        success: false,
-        message: error.message,
-        data: null,
-        timestamp: new Date().toISOString()
-      });
+      console.error('Refresh token error:', error);
+      return errorResponse(res, 'Token refresh failed', 500);
     }
   }
 
   static async logout(req, res) {
     try {
-      const { refresh_token } = req.body;
-      const result = await authService.logout(refresh_token);
-      return res.status(200).json(result);
+      const userId = req.user.userId;
+      const refreshToken = req.body.refreshToken || null;
+
+      const result = await authService.logout(userId, refreshToken);
+
+      return successResponse(res, null, result.message);
     } catch (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.message,
-        data: null,
-        timestamp: new Date().toISOString()
-      });
+      console.error('Logout error:', error);
+      return errorResponse(res, 'Logout failed', 500);
     }
   }
 
-  static async forgotPassword(req, res) {
+  static async requestOtp(req, res) {
     try {
-      const { username } = req.body;
-      const result = await authService.forgotPassword(username);
-      return res.status(200).json(result);
+      const { mobile, email, type, channel } = req.body;
+
+      if (!mobile && !email) {
+        return validationErrorResponse(res, null, 'Mobile or email is required');
+      }
+
+      if (!type) {
+        return validationErrorResponse(res, null, 'Type is required');
+      }
+
+      if (!['login', 'signup', 'verification', 'password_reset'].includes(type)) {
+        return validationErrorResponse(res, null, 'Invalid OTP type');
+      }
+
+      if (channel && !['sms', 'whatsapp', 'email'].includes(channel)) {
+        return validationErrorResponse(res, null, 'Invalid channel. Use: sms, whatsapp, or email');
+      }
+
+      if (channel === 'email' && !email) {
+        return validationErrorResponse(res, null, 'Email is required for email channel');
+      }
+
+      const result = await authService.requestOtp({ mobile, email, type, channel: channel || 'sms' });
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 400);
+      }
+
+      return successResponse(res, result.data, result.message);
     } catch (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.message,
-        data: null,
-        timestamp: new Date().toISOString()
-      });
+      console.error('Request OTP error:', error);
+      return errorResponse(res, 'Failed to send OTP', 500);
+    }
+  }
+
+  static async verifyOtp(req, res) {
+    try {
+      const { mobile, email, otp, type } = req.body;
+
+      if (!mobile && !email) {
+        return validationErrorResponse(res, null, 'Mobile or email is required');
+      }
+
+      if (!otp) {
+        return validationErrorResponse(res, null, 'OTP is required');
+      }
+
+      if (!type) {
+        return validationErrorResponse(res, null, 'Type is required');
+      }
+
+      if (!['login', 'signup', 'verification', 'password_reset'].includes(type)) {
+        return validationErrorResponse(res, null, 'Invalid OTP type');
+      }
+
+      const result = await authService.verifyOtp({ mobile, email, otp, type });
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 400);
+      }
+
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      console.error('Verify OTP error:', error);
+      return errorResponse(res, 'OTP verification failed', 500);
     }
   }
 
   static async resetPassword(req, res) {
     try {
-      const { username, otp, newPassword } = req.body;
-      const result = await authService.resetPassword(username, otp, newPassword);
-      return res.status(200).json(result);
-    } catch (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.message,
-        data: null,
-        timestamp: new Date().toISOString()
+      const { mobile, otp, newPassword } = req.body;
+
+      if (!mobile || !otp || !newPassword) {
+        return validationErrorResponse(res, null, 'Mobile, OTP, and new password are required');
+      }
+
+      if (newPassword.length < 6) {
+        return validationErrorResponse(res, null, 'Password must be at least 6 characters long');
+      }
+
+      const result = await authService.resetPassword({
+        mobile,
+        otp,
+        newPassword
       });
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 400);
+      }
+
+      return successResponse(res, null, result.message);
+    } catch (error) {
+      console.error('Reset password error:', error);
+      return errorResponse(res, 'Password reset failed', 500);
     }
   }
 }

@@ -16,6 +16,16 @@ export async function up(queryInterface, Sequelize) {
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE'
     },
+    album_id: {
+      type: Sequelize.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'portfolio_albums',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    },
     media_type: {
       type: Sequelize.ENUM('image', 'video'),
       allowNull: false,
@@ -28,16 +38,6 @@ export async function up(queryInterface, Sequelize) {
     thumbnail_url: {
       type: Sequelize.STRING(500),
       allowNull: true
-    },
-    mime_type: {
-      type: Sequelize.STRING(100),
-      allowNull: false,
-      defaultValue: 'image/jpeg'
-    },
-    thumbnail_mime_type: {
-      type: Sequelize.STRING(100),
-      allowNull: true,
-      defaultValue: 'image/jpeg'
     },
     file_size_bytes: {
       type: Sequelize.BIGINT,
@@ -99,6 +99,10 @@ export async function up(queryInterface, Sequelize) {
 
   await queryInterface.addIndex('portfolio_media', ['portfolio_id'], {
     name: 'idx_portfolio_media_portfolio_id'
+  });
+
+  await queryInterface.addIndex('portfolio_media', ['album_id'], {
+    name: 'idx_portfolio_media_album_id'
   });
 
   await queryInterface.addIndex('portfolio_media', ['media_type'], {

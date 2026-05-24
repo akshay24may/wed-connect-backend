@@ -1,21 +1,15 @@
-import db from '#models/index.js';
+import models from '#models/index.js';
+import bcrypt from 'bcrypt';
 
-/**
- * AuthRepository - Database operations for authentication
- * Singleton pattern for consistent instance usage
- */
+const { User, Role, UserSession, OtpVerification, VendorProfile } = models;
+
 class AuthRepository {
-  /**
-   * Find user by mobile number
-   * @param {string} mobile - Mobile number
-   * @returns {Promise<Object|null>} User object or null
-   */
-  async findByMobile(mobile) {
-    return await db.User.findOne({
+  async findUserByMobile(mobile) {
+    return await User.findOne({
       where: { mobile },
       include: [
         {
-          model: db.Role,
+          model: Role,
           as: 'role',
           attributes: ['id', 'name', 'slug']
         }
@@ -23,17 +17,12 @@ class AuthRepository {
     });
   }
 
-  /**
-   * Find user by email
-   * @param {string} email - Email address
-   * @returns {Promise<Object|null>} User object or null
-   */
-  async findByEmail(email) {
-    return await db.User.findOne({
+  async findUserByEmail(email) {
+    return await User.findOne({
       where: { email },
       include: [
         {
-          model: db.Role,
+          model: Role,
           as: 'role',
           attributes: ['id', 'name', 'slug']
         }
@@ -41,16 +30,11 @@ class AuthRepository {
     });
   }
 
-  /**
-   * Find user by ID
-   * @param {number} userId - User ID
-   * @returns {Promise<Object|null>} User object or null
-   */
-  async findById(userId) {
-    return await db.User.findByPk(userId, {
+  async findUserById(userId) {
+    return await User.findByPk(userId, {
       include: [
         {
-          model: db.Role,
+          model: Role,
           as: 'role',
           attributes: ['id', 'name', 'slug']
         }
@@ -58,166 +42,152 @@ class AuthRepository {
     });
   }
 
-  /**
-   * Create user session
-   * @param {Object} sessionData - Session data
-   * @returns {Promise<Object>} Created session object
-   */
-  async createSession(sessionData) {
-    return await db.UserSession.create(sessionData);
-  }
-
-  /**
-   * Find active session by refresh token
-   * @param {string} refreshToken - Refresh token
-   * @returns {Promise<Object|null>} Session object or null
-   */
-  async findSessionByRefreshToken(refreshToken) {
-    return await db.UserSession.findOne({
-      where: { 
-        refreshToken,
-        isActive: true
-      }
+  async findRoleBySlug(slug) {
+    return await Role.findOne({
+      where: { slug, isActive: true }
     });
   }
 
-  /**
-   * Invalidate session by refresh token
-   * @param {string} refreshToken - Refresh token
-   * @returns {Promise<void>}
-   */
-  async invalidateSession(refreshToken) {
-    await db.UserSession.update(
-      { isActive: false },
-      { where: { refreshToken } }
-    );
-  }
-
-  /**
-   * Invalidate all user sessions
-   * @param {number} userId - User ID
-   * @returns {Promise<void>}
-   */
-  async invalidateAllUserSessions(userId) {
-    await db.UserSession.update(
-      { isActive: false },
-      { where: { userId } }
-    );
-  }
-
-  /**
-   * Create new user
-   * @param {Object} userData - User data
-   * @returns {Promise<Object>} Created user object
-   */
-  async create(userData) {
-    return await db.User.create(userData);
-  }
-
-  async findByReferralCode(code) {
-    return await db.User.findOne({
-      where: { referralCode: code },
-      attributes: ['id', 'mobile', 'email', 'fullName', 'referralCode']
-    });
-  }
-
-  async incrementReferralCount(userId) {
-    return await db.User.increment('referralCount', {
-      where: { id: userId }
+  async createUser(userData) {
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    
+    return await User.create({
+      fullName: userData.fullName,
+      mobile: userData.mobile,
+      countryCode: userData.countryCode || '+91',
+      email: userData.email || null,
+      passwordHash: hashedPassword,
+      roleId: userData.roleId,
+      isActive: true,
+      isPhoneVerified: userData.isPhoneVerified || false,
+      isEmailVerified: false,
+      isProfileComplete: false
     });
   }
 
   async updateLastLogin(userId) {
-    await db.User.update(
+    return await User.update(
       { lastLoginAt: new Date() },
       { where: { id: userId } }
     );
   }
 
-  /**
-   * Get default user role (for new registrations)
-   * @returns {Promise<Object|null>} Role object or null
-   */
-  async getDefaultRole() {
-    return await db.Role.findOne({
-      where: { slug: 'user', isActive: true }
+  async createSession(sessionData) {
+    return await UserSession.create({
+      userId: sessionData.userId,
+      refreshToken: sessionData.refreshToken,
+      deviceName: sessionData.deviceInfo || null,
+      ipAddressV4: sessionData.ipAddress || null,
+      expiresAt: sessionData.expiresAt,
+      isActive: true
     });
   }
 
-  async findAll(filters = {}) {
-    const where = {};
-    
-    if (filters.status) {
-      where.status = filters.status;
+  async findSessionByRefreshToken(refreshToken) {
+    return await UserSession.findOne({
+      where: { refreshToken, isActive: true }
+    });
+  }
+
+  async invalidateSession(refreshToken) {
+    return await UserSession.update(
+      { isActive: false },
+      { where: { refreshToken } }
+    );
+  }
+
+  async invalidateAllUserSessions(userId) {
+    return await UserSession.update(
+      { isActive: false },
+      { where: { userId } }
+    );
+  }
+
+  async createOtp(otpData) {
+    return await OtpVerification.create({
+      mobile: otpData.mobile,
+      email: otpData.email || null,
+      otp: otpData.otp,
+      type: otpData.type,
+      channel: otpData.channel || 'sms',
+      expiresAt: otpData.expiresAt,
+      isVerified: false,
+      attempts: 0
+    });
+  }
+
+  async findOtpById(otpId) {
+    return await OtpVerification.findByPk(otpId);
+  }
+
+  async findValidOtp(identifier, type) {
+    const where = {
+      type,
+      isVerified: false,
+      expiresAt: {
+        [models.Sequelize.Op.gt]: new Date()
+      }
+    };
+
+    if (identifier.includes('@')) {
+      where.email = identifier;
+    } else {
+      where.mobile = identifier;
     }
 
-    return await db.User.findAll({
+    return await OtpVerification.findOne({
       where,
-      attributes: ['id', 'fullName', 'email', 'mobile', 'status'],
-      include: [
-        {
-          model: db.Role,
-          as: 'role',
-          attributes: ['id', 'name', 'slug']
-        }
-      ]
+      order: [['created_at', 'DESC']]
     });
   }
 
-  async findByIds(userIds) {
-    return await db.User.findAll({
-      where: {
-        id: userIds
-      },
-      attributes: ['id', 'fullName', 'email', 'mobile', 'status'],
-      include: [
-        {
-          model: db.Role,
-          as: 'role',
-          attributes: ['id', 'name', 'slug']
-        }
-      ]
-    });
+  async incrementOtpAttempts(otpId) {
+    const otp = await OtpVerification.findByPk(otpId);
+    if (otp) {
+      otp.attempts += 1;
+      await otp.save();
+    }
+    return otp;
   }
 
-  async findByRole(roleSlug) {
-    return await db.User.findAll({
-      include: [
-        {
-          model: db.Role,
-          as: 'role',
-          where: { slug: roleSlug },
-          attributes: ['id', 'name', 'slug']
-        }
-      ],
-      attributes: ['id', 'fullName', 'email', 'mobile', 'status']
-    });
+  async markOtpAsVerified(otpId) {
+    return await OtpVerification.update(
+      { isVerified: true, verifiedAt: new Date() },
+      { where: { id: otpId } }
+    );
   }
 
-  async findBySubscriptionTier(subscriptionTier) {
-    return await db.User.findAll({
-      include: [
-        {
-          model: db.UserSubscription,
-          as: 'activeSubscription',
-          where: {
-            tier: subscriptionTier,
-            status: 'active'
-          },
-          required: true
-        }
-      ],
-      attributes: ['id', 'fullName', 'email', 'mobile', 'status']
-    });
-  }
-
-  async updatePassword(userId, passwordHash) {
-    return await db.User.update(
-      { passwordHash, isPasswordReset: true },
+  async updatePassword(userId, newPassword) {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    return await User.update(
+      { passwordHash: hashedPassword },
       { where: { id: userId } }
     );
   }
+
+  async markPhoneAsVerified(userId) {
+    return await User.update(
+      { 
+        isPhoneVerified: true,
+        phoneVerifiedAt: new Date()
+      },
+      { where: { id: userId } }
+    );
+  }
+
+  async markEmailAsVerified(userId) {
+    return await User.update(
+      { 
+        isEmailVerified: true,
+        emailVerifiedAt: new Date()
+      },
+      { where: { id: userId } }
+    );
+  }
+
+  async createVendorProfile(vendorData) {
+    return await VendorProfile.create(vendorData);
+  }
 }
 
-// Export singleton instance
 export default new AuthRepository();

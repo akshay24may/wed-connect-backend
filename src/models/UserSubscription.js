@@ -1,7 +1,45 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
+import sequelize from '#config/database.js';
 
-export default (sequelize) => {
-  const UserSubscription = sequelize.define('UserSubscription', {
+class UserSubscription extends Model {
+  static associate(models) {
+    this.belongsTo(models.User, {
+      foreignKey: 'userId',
+      as: 'user'
+    });
+
+    this.belongsTo(models.SubscriptionPlan, {
+      foreignKey: 'planId',
+      as: 'plan'
+    });
+
+    // Self-reference for subscription chain
+    this.belongsTo(models.UserSubscription, {
+      foreignKey: 'previousSubscriptionId',
+      as: 'previousSubscription'
+    });
+
+    // Has many Portfolios (for quota tracking)
+    this.hasMany(models.Portfolio, {
+      foreignKey: 'userSubscriptionId',
+      as: 'portfolios'
+    });
+
+    // Audit associations
+    this.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'creator'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'deletedBy',
+      as: 'deleter'
+    });
+  }
+}
+
+UserSubscription.init(
+  {
     id: {
       type: DataTypes.BIGINT,
       primaryKey: true,
@@ -134,19 +172,6 @@ export default (sequelize) => {
       field: 'max_published_portfolios',
       comment: 'Snapshot: Max published portfolios'
     },
-    portfoliosQuotaRollingDays: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'portfolios_quota_rolling_days',
-      comment: 'Snapshot: Rolling window period in days'
-    },
-    maxStorageMb: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'max_storage_mb',
-      comment: 'Snapshot: Maximum storage in MB for all portfolio media (null = unlimited)'
-    },
-    // Featured & Promotional Snapshot
     maxFeaturedPortfolios: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -154,80 +179,7 @@ export default (sequelize) => {
       field: 'max_featured_portfolios',
       comment: 'Snapshot: Max featured portfolios'
     },
-    maxHomepagePortfolios: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      field: 'max_homepage_portfolios',
-      comment: 'Snapshot: Max homepage portfolios'
-    },
-    featuredDays: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      field: 'featured_days',
-      comment: 'Snapshot: Featured duration'
-    },
-    homepageDays: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      field: 'homepage_days',
-      comment: 'Snapshot: Homepage duration'
-    },
-    // Visibility & Priority Snapshot
-    priorityScore: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      field: 'priority_score',
-      comment: 'Snapshot: Priority score'
-    },
-    searchBoostMultiplier: {
-      type: DataTypes.DECIMAL(5, 2),
-      allowNull: false,
-      defaultValue: 1.0,
-      field: 'search_boost_multiplier',
-      comment: 'Snapshot: Search boost multiplier'
-    },
-    nationalVisibility: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-      field: 'national_visibility',
-      comment: 'Snapshot: National visibility flag'
-    },
-    // Portfolio Management Snapshot
-    isAutoApproveEnabled: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-      field: 'is_auto_approve_enabled',
-      comment: 'Snapshot: auto-approve setting from plan'
-    },
-    // Republish Settings Snapshot
-    maxRepublishCount: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      field: 'max_republish_count',
-      comment: 'Snapshot: Maximum times a portfolio can be republished (0 = unlimited)'
-    },
-    republishCooldownDays: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 7,
-      field: 'republish_cooldown_days',
-      comment: 'Snapshot: Minimum days required between consecutive republishes'
-    },
-    // Support Snapshot
-    supportLevel: {
-      type: DataTypes.STRING(20),
-      allowNull: false,
-      defaultValue: 'standard',
-      field: 'support_level'
-    },
-    // Features Snapshot
+    // Features Snapshot (includes all other plan settings)
     features: {
       type: DataTypes.JSON,
       allowNull: false,
@@ -308,7 +260,8 @@ export default (sequelize) => {
       allowNull: true,
       field: 'deleted_by'
     }
-  }, {
+  },
+  {
     sequelize,
     tableName: 'user_subscriptions',
     timestamps: true,
@@ -332,42 +285,7 @@ export default (sequelize) => {
         }
       }
     }
-  });
+  }
+);
 
-  UserSubscription.associate = (models) => {
-    UserSubscription.belongsTo(models.User, {
-      foreignKey: 'userId',
-      as: 'user'
-    });
-
-    UserSubscription.belongsTo(models.SubscriptionPlan, {
-      foreignKey: 'planId',
-      as: 'plan'
-    });
-
-    // Self-reference for subscription chain
-    UserSubscription.belongsTo(models.UserSubscription, {
-      foreignKey: 'previousSubscriptionId',
-      as: 'previousSubscription'
-    });
-
-    // Has many Portfolios (for quota tracking)
-    UserSubscription.hasMany(models.Portfolio, {
-      foreignKey: 'userSubscriptionId',
-      as: 'portfolios'
-    });
-
-    // Audit associations
-    UserSubscription.belongsTo(models.User, {
-      foreignKey: 'createdBy',
-      as: 'creator'
-    });
-
-    UserSubscription.belongsTo(models.User, {
-      foreignKey: 'deletedBy',
-      as: 'deleter'
-    });
-  };
-
-  return UserSubscription;
-};
+export default UserSubscription;

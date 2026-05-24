@@ -24,16 +24,8 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.STRING(500),
       allowNull: true
     },
-    icon_mime_type: {
-      type: Sequelize.STRING(50),
-      allowNull: true
-    },
     banner_image: {
       type: Sequelize.STRING(500),
-      allowNull: true
-    },
-    banner_mime_type: {
-      type: Sequelize.STRING(50),
       allowNull: true
     },
     storage_type: {
