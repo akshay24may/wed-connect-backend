@@ -59,6 +59,11 @@ class User extends Model {
       foreignKey: "referredBy",
       as: "referrals",
     });
+
+    this.hasMany(models.BusinessProfile, {
+      foreignKey: "userId",
+      as: "businessProfiles",
+    });
   }
 
   async comparePassword(candidatePassword) {
@@ -291,6 +296,28 @@ User.init(
       allowNull: false,
       defaultValue: 0,
       field: "referral_count",
+    },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "is_verified",
+    },
+    verifiedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "verified_at",
+    },
+    verificationBadgeType: {
+      type: DataTypes.ENUM('basic', 'premium', 'elite'),
+      allowNull: true,
+      field: "verification_badge_type",
+    },
+    trustScore: {
+      type: DataTypes.DECIMAL(3, 2),
+      allowNull: false,
+      defaultValue: 0.00,
+      field: "trust_score",
     },
     createdBy: {
       type: DataTypes.BIGINT,

@@ -99,6 +99,11 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.STRING(255),
       allowNull: false,
     },
+    category_slug: {
+      type: Sequelize.STRING(100),
+      allowNull: false,
+      comment: 'Category slug for quick lookups'
+    },
     city_tier: {
       type: Sequelize.INTEGER,
       allowNull: false,
@@ -111,28 +116,42 @@ export async function up(queryInterface, Sequelize) {
       defaultValue: 0,
       comment: 'Max published portfolios (only published count toward quota)'
     },
-    portfolios_quota_rolling_days: {
-      type: Sequelize.INTEGER,
-      allowNull: true,
-      comment: 'Rolling window period in days for portfolio quota'
-    },
     max_storage_mb: {
       type: Sequelize.INTEGER,
       allowNull: true,
       comment: 'Maximum storage in MB for all portfolio media (null = unlimited)'
     },
-    // Featured & Promotional
-    max_featured_portfolios: {
+    // Album & Media Quotas
+    max_albums_per_portfolio: {
       type: Sequelize.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      comment: 'Max portfolios that can be marked as featured'
+      comment: 'Maximum albums per portfolio'
     },
-    max_homepage_portfolios: {
+    max_photos_per_album: {
       type: Sequelize.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      comment: 'Max portfolios shown on homepage'
+      comment: 'Maximum photos per album'
+    },
+    max_videos_per_album: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Maximum videos per album'
+    },
+    allow_videos: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Whether videos are allowed'
+    },
+    // Featured & Promotional
+    is_featured_allowed: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Whether portfolio can be marked as featured'
     },
     featured_days: {
       type: Sequelize.INTEGER,
@@ -140,11 +159,23 @@ export async function up(queryInterface, Sequelize) {
       defaultValue: 0,
       comment: 'Duration for featured status (0 = unlimited)'
     },
-    homepage_days: {
+    is_boosted_allowed: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Whether portfolio can be boosted'
+    },
+    boosted_days: {
       type: Sequelize.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      comment: 'Duration for homepage visibility (0 = unlimited)'
+      comment: 'Duration for boosted status (0 = not available)'
+    },
+    can_be_recommended: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Whether portfolios can be platform recommended'
     },
     // Visibility & Priority
     priority_score: {
@@ -205,7 +236,8 @@ export async function up(queryInterface, Sequelize) {
     },
     internal_notes: {
       type: Sequelize.TEXT,
-      allowNull: true
+      allowNull: true,
+      comment: 'Internal notes for admin/staff about the plan'
     },
     terms_and_conditions: {
       type: Sequelize.TEXT,
@@ -312,6 +344,10 @@ export async function up(queryInterface, Sequelize) {
 
   await queryInterface.addIndex('subscription_plans', ['category_id'], {
     name: 'idx_subscription_plans_category_id'
+  });
+
+  await queryInterface.addIndex('subscription_plans', ['category_slug'], {
+    name: 'idx_subscription_plans_category_slug'
   });
 
   await queryInterface.addIndex('subscription_plans', ['city_tier'], {

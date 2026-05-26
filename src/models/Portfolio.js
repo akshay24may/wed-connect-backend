@@ -10,6 +10,11 @@ class Portfolio extends Model {
       as: 'user'
     });
 
+    this.belongsTo(models.BusinessProfile, {
+      foreignKey: 'business_profile_id',
+      as: 'businessProfile'
+    });
+
     this.belongsTo(models.Category, {
       foreignKey: 'category_id',
       as: 'category'
@@ -26,8 +31,18 @@ class Portfolio extends Model {
     });
 
     this.hasMany(models.PortfolioMedia, {
-      foreignKey: 'portfolio_id',
+      foreignKey: 'portfolioId',
       as: 'media'
+    });
+
+    this.hasMany(models.PortfolioAlbum, {
+      foreignKey: 'portfolioId',
+      as: 'albums'
+    });
+
+    this.hasMany(models.PortfolioReview, {
+      foreignKey: 'portfolioId',
+      as: 'reviews'
     });
 
     this.belongsTo(models.User, {
@@ -59,6 +74,11 @@ Portfolio.init(
       type: DataTypes.BIGINT,
       allowNull: false,
       field: 'user_id'
+    },
+    businessProfileId: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      field: 'business_profile_id'
     },
     categoryId: {
       type: DataTypes.INTEGER,
@@ -97,14 +117,9 @@ Portfolio.init(
       allowNull: true,
       field: 'description'
     },
-    startingPrice: {
-      type: DataTypes.DECIMAL(15, 2),
-      allowNull: true,
-      field: 'starting_price'
-    },
     priceRangeMin: {
       type: DataTypes.DECIMAL(15, 2),
-      allowNull: true,
+      allowNull: false,
       field: 'price_range_min'
     },
     priceRangeMax: {
@@ -117,6 +132,97 @@ Portfolio.init(
       allowNull: false,
       defaultValue: false,
       field: 'price_on_request'
+    },
+    priceBreakdown: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'price_breakdown'
+    },
+    advancePercentage: {
+      type: DataTypes.SMALLINT,
+      allowNull: true,
+      field: 'advance_percentage'
+    },
+    financialTerms: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'financial_terms'
+    },
+    servicesOfferedTags: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'services_offered_tags'
+    },
+    servicesDescription: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'services_description'
+    },
+    coverageCities: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'coverage_cities'
+    },
+    acceptsDestinationWedding: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'accepts_destination_wedding'
+    },
+    destinationWeddingFeeDifferent: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'destination_wedding_fee_different'
+    },
+    cancellationPolicyUser: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'cancellation_policy_user'
+    },
+    cancellationPolicyVendor: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'cancellation_policy_vendor'
+    },
+    workingStyle: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'working_style'
+    },
+    longDescription: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'long_description'
+    },
+    decorPolicy: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: 'decor_policy'
+    },
+    acceptsAdvanceBooking: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+      field: 'accepts_advance_booking'
+    },
+    minAdvanceBookingDays: {
+      type: DataTypes.SMALLINT,
+      allowNull: false,
+      defaultValue: 7,
+      field: 'min_advance_booking_days'
+    },
+    weddingsCompleted: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'weddings_completed'
+    },
+    happyClientsCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'happy_clients_count'
     },
     stateId: {
       type: DataTypes.INTEGER,
@@ -137,11 +243,6 @@ Portfolio.init(
       type: DataTypes.STRING(255),
       allowNull: false,
       field: 'city_slug'
-    },
-    locality: {
-      type: DataTypes.STRING(200),
-      allowNull: true,
-      field: 'locality'
     },
     address: {
       type: DataTypes.TEXT,
@@ -164,6 +265,28 @@ Portfolio.init(
       type: DataTypes.DATE,
       allowNull: true,
       field: 'featured_until'
+    },
+    isBoosted: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_boosted'
+    },
+    boostedUntil: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'boosted_until'
+    },
+    isRecommended: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_recommended'
+    },
+    recommendedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'recommended_at'
     },
     publishedAt: {
       type: DataTypes.DATE,
@@ -212,6 +335,24 @@ Portfolio.init(
       allowNull: false,
       defaultValue: 0,
       field: 'total_favorites'
+    },
+    averageRating: {
+      type: DataTypes.DECIMAL(3, 2),
+      allowNull: false,
+      defaultValue: 0.00,
+      field: 'average_rating'
+    },
+    totalReviews: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'total_reviews'
+    },
+    ratingDistribution: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      defaultValue: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 },
+      field: 'rating_distribution'
     },
     coverImage: {
       type: DataTypes.STRING(500),
@@ -270,6 +411,11 @@ Portfolio.init(
       type: DataTypes.JSONB,
       allowNull: true,
       field: 'service_details'
+    },
+    internalNotes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'internal_notes'
     },
     createdBy: {
       type: DataTypes.BIGINT,

@@ -38,6 +38,32 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.STRING(250),
       allowNull: false
     },
+    city_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'cities',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'RESTRICT'
+    },
+    city_slug: {
+      type: Sequelize.STRING(255),
+      allowNull: true
+    },
+    location_name: {
+      type: Sequelize.STRING(200),
+      allowNull: true
+    },
+    latitude: {
+      type: Sequelize.DECIMAL(10, 8),
+      allowNull: true
+    },
+    longitude: {
+      type: Sequelize.DECIMAL(11, 8),
+      allowNull: true
+    },
     cover_photo_one: {
       type: Sequelize.TEXT,
       allowNull: true
@@ -85,6 +111,30 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: true
     },
+    created_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    },
+    updated_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true
+    },
+    deleted_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    },
     created_at: {
       type: Sequelize.DATE,
       allowNull: false,
@@ -110,16 +160,20 @@ export async function up(queryInterface, Sequelize) {
   });
 
   await queryInterface.addIndex('portfolio_albums', ['album_slug'], {
-    name: 'idx_portfolio_albums_slug'
+    name: 'idx_portfolio_albums_slug',
+    unique: true
+  });
+
+  await queryInterface.addIndex('portfolio_albums', ['city_id'], {
+    name: 'idx_portfolio_albums_city_id'
   });
 
   await queryInterface.addIndex('portfolio_albums', ['display_order'], {
     name: 'idx_portfolio_albums_display_order'
   });
 
-  await queryInterface.addIndex('portfolio_albums', ['portfolio_id', 'album_slug'], {
-    name: 'idx_portfolio_albums_portfolio_slug',
-    unique: true
+  await queryInterface.addIndex('portfolio_albums', ['deleted_at'], {
+    name: 'idx_portfolio_albums_deleted_at'
   });
 }
 

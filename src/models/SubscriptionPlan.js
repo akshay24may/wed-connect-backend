@@ -142,105 +142,123 @@ SubscriptionPlan.init(
       allowNull: false,
       field: 'category_name'
     },
+    categorySlug: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      field: 'category_slug'
+    },
     cityTier: {
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'city_tier',
-      comment: 'City tier: 1, 2, or 3'
+      comment: 'City tier: 1, 2, 3, 4, 5'
     },
     // Portfolio Quotas
     maxPublishedPortfolios: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'max_published_portfolios',
-      comment: 'Max published portfolios (only published count toward quota)'
-    },
-    portfoliosQuotaRollingDays: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'portfolios_quota_rolling_days',
-      comment: 'Rolling window period in days for portfolio quota'
+      field: 'max_published_portfolios'
     },
     maxStorageMb: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      field: 'max_storage_mb',
-      comment: 'Maximum storage in MB for all portfolio media (null = unlimited)'
+      field: 'max_storage_mb'
+    },
+    // Album & Media Quotas
+    maxAlbumsPerPortfolio: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'max_albums_per_portfolio'
+    },
+    maxPhotosPerAlbum: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'max_photos_per_album'
+    },
+    maxVideosPerAlbum: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'max_videos_per_album'
+    },
+    allowVideos: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'allow_videos'
     },
     // Featured & Promotional
-    maxFeaturedPortfolios: {
-      type: DataTypes.INTEGER,
+    isFeaturedAllowed: {
+      type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: 0,
-      field: 'max_featured_portfolios',
-      comment: 'Max portfolios that can be marked as featured'
-    },
-    maxHomepagePortfolios: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      field: 'max_homepage_portfolios',
-      comment: 'Max portfolios shown on homepage'
+      defaultValue: false,
+      field: 'is_featured_allowed'
     },
     featuredDays: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'featured_days',
-      comment: 'Duration for featured status (0 = unlimited)'
+      field: 'featured_days'
     },
-    homepageDays: {
+    isBoostedAllowed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_boosted_allowed'
+    },
+    boostedDays: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'homepage_days',
-      comment: 'Duration for homepage visibility (0 = unlimited)'
+      field: 'boosted_days'
+    },
+    canBeRecommended: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'can_be_recommended'
     },
     // Visibility & Priority
     priorityScore: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'priority_score',
-      comment: 'Priority score for ranking'
+      field: 'priority_score'
     },
     searchBoostMultiplier: {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: false,
       defaultValue: 1.0,
-      field: 'search_boost_multiplier',
-      comment: 'Search ranking boost multiplier'
+      field: 'search_boost_multiplier'
     },
     nationalVisibility: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-      field: 'national_visibility',
-      comment: 'Show portfolios nationally (not just in selected city)'
+      field: 'national_visibility'
     },
     // Portfolio Management
     isAutoApproveEnabled: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-      field: 'is_auto_approve_enabled',
-      comment: 'If true, portfolios under this plan are auto-approved'
+      field: 'is_auto_approve_enabled'
     },
     // Republish Settings
     maxRepublishCount: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'max_republish_count',
-      comment: 'Maximum times a portfolio can be republished (0 = unlimited)'
+      field: 'max_republish_count'
     },
     republishCooldownDays: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 7,
-      field: 'republish_cooldown_days',
-      comment: 'Minimum days required between consecutive republishes'
+      field: 'republish_cooldown_days'
     },
     // Support
     supportLevel: {

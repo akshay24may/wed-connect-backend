@@ -655,6 +655,129 @@ Rules:
 - Flat constants object
 - Import and use directly
 
+### ✅ Use Database Enums Constants
+
+**CRITICAL: Always use database enum constants from `#utils/constants/databaseEnums.js` in service logic.**
+
+```javascript
+// ✅ Correct - Use constants
+import { PORTFOLIO_STATUS, CANCELLATION_POLICY_USER } from '#utils/constants/databaseEnums.js';
+
+if (portfolio.status === PORTFOLIO_STATUS.PUBLISHED) {
+  // ...
+}
+
+if (cancellationPolicy === CANCELLATION_POLICY_USER.FULL_REFUND) {
+  // ...
+}
+
+// ❌ Wrong - Hardcoded strings
+if (portfolio.status === 'published') {
+  // ...
+}
+
+if (cancellationPolicy === 'full_refund') {
+  // ...
+}
+```
+
+**Available enum constants:**
+- `STORAGE_TYPES` - File storage providers
+- `BUSINESS_TYPES` - Business entity types
+- `PORTFOLIO_STATUS` - Portfolio workflow states
+- `CANCELLATION_POLICY_USER` - User cancellation options
+- `CANCELLATION_POLICY_VENDOR` - Vendor cancellation options
+- `DECOR_POLICY` - Decor policy options
+- `VERIFICATION_BADGE_TYPE` - Vendor verification badges
+- `KYC_STATUS` - KYC verification states
+- `SUBSCRIPTION_STATUS` - Subscription states
+- `MEDIA_TYPE` - Media file types
+- `CHAT_MESSAGE_TYPE` - Chat message types
+- `NOTIFICATION_TYPE` - Notification categories
+- `TRANSACTION_STATUS` - Payment transaction states
+- `PAYMENT_METHOD` - Payment methods
+
+**Benefits:**
+- Type safety (catch typos at development time)
+- Centralized enum definitions
+- Easy refactoring (change once, update everywhere)
+- Auto-complete in IDE
+- Self-documenting code
+
+### ✅ Use JSONB Schema Validation
+
+**CRITICAL: Always validate JSONB fields using schemas from `#utils/constants/databaseJsonbSchemas.js` in service logic.**
+
+```javascript
+// ✅ Correct - Validate JSONB data
+import { 
+  FINANCIAL_TERMS_SCHEMA, 
+  PRICE_BREAKDOWN_SCHEMA,
+  validateJsonbField 
+} from '#utils/constants/databaseJsonbSchemas.js';
+
+// Validate financial terms
+const { valid, errors } = validateJsonbField('financial_terms', financialTermsData, FINANCIAL_TERMS_SCHEMA);
+if (!valid) {
+  throw new Error(`Invalid financial terms: ${errors.join(', ')}`);
+}
+
+// Validate price breakdown
+const priceValidation = validateJsonbField('price_breakdown', priceData, PRICE_BREAKDOWN_SCHEMA);
+if (!priceValidation.valid) {
+  throw new Error(`Invalid price breakdown: ${priceValidation.errors.join(', ')}`);
+}
+
+// ❌ Wrong - No validation
+portfolio.financialTerms = req.body.financial_terms; // Accepts any structure
+```
+
+**Available JSONB schemas:**
+- `FINANCIAL_TERMS_SCHEMA` - payment_terms, travel_cost_terms, delivery_timeline, cancellation_terms
+- `PRICE_BREAKDOWN_SCHEMA` - items array with name, price, unit
+- `SERVICES_OFFERED_TAGS_SCHEMA` - Array of service tags
+- `COVERAGE_CITIES_SCHEMA` - Array of city names
+- `BUSINESS_HOURS_SCHEMA` - Weekly schedule with open/close times
+- `CERTIFICATIONS_SCHEMA` - Array of certifications with name, issuer, year
+- `AWARDS_SCHEMA` - Array of awards with name, issuer, year
+- `RATING_DISTRIBUTION_SCHEMA` - Star rating counts (1-5)
+- `REPUBLISH_HISTORY_SCHEMA` - Array of republish events
+- `SERVICE_DETAILS_SCHEMA` - Flexible category-specific details
+
+**Example schemas:**
+
+```javascript
+// financial_terms structure
+{
+  "payment_terms": "50% advance, 50% on delivery",
+  "travel_cost_terms": "Free within 50km, ₹10/km beyond",
+  "delivery_timeline": "4-6 weeks",
+  "cancellation_terms": "No refund within 30 days"
+}
+
+// price_breakdown structure
+{
+  "items": [
+    { "name": "Veg Plate", "price": 350, "unit": "per person" },
+    { "name": "Non-Veg Plate", "price": 500, "unit": "per person" }
+  ],
+  "pricing_model": ["fixed_fee", "per_person"]
+}
+
+// services_offered_tags structure
+["wedding_day", "pre_wedding", "candid", "traditional", "drone"]
+
+// coverage_cities structure
+["Delhi", "Mumbai", "Bangalore", "Jaipur"]
+```
+
+**Benefits:**
+- Consistent data structure across the application
+- Catch invalid data at service layer (before database)
+- Self-documenting JSONB field structures
+- Easy to maintain and update schemas
+- Prevents malformed data in database
+
 ### ✅ Use Custom Slugify Utility
 
 **CRITICAL: Always use `generateUniqueSlug()` from `#utils/customSlugify.js` for generating slugs in model hooks.**

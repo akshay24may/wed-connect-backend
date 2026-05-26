@@ -1,5 +1,6 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '#config/database.js';
+import { generateUniqueSlug } from '#utils/customSlugify.js';
 import { getFullUrl } from '#utils/storageHelper.js';
 
 class PortfolioAlbum extends Model {
@@ -11,12 +12,27 @@ class PortfolioAlbum extends Model {
 
     this.belongsTo(models.User, {
       foreignKey: 'userId',
-      as: 'vendor'
+      as: 'user'
+    });
+
+    this.belongsTo(models.City, {
+      foreignKey: 'cityId',
+      as: 'city'
     });
 
     this.hasMany(models.PortfolioMedia, {
       foreignKey: 'albumId',
       as: 'media'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'creator'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'deletedBy',
+      as: 'deleter'
     });
   }
 }
@@ -52,7 +68,33 @@ PortfolioAlbum.init(
     albumSlug: {
       type: DataTypes.STRING(250),
       allowNull: false,
+      unique: true,
       field: 'album_slug'
+    },
+    cityId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'city_id'
+    },
+    citySlug: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: 'city_slug'
+    },
+    locationName: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      field: 'location_name'
+    },
+    latitude: {
+      type: DataTypes.DECIMAL(10, 8),
+      allowNull: true,
+      field: 'latitude'
+    },
+    longitude: {
+      type: DataTypes.DECIMAL(11, 8),
+      allowNull: true,
+      field: 'longitude'
     },
     coverPhotoOne: {
       type: DataTypes.TEXT,
@@ -123,6 +165,21 @@ PortfolioAlbum.init(
       allowNull: false,
       defaultValue: true,
       field: 'is_public'
+    },
+    createdBy: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      field: 'created_by'
+    },
+    updatedBy: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      field: 'updated_by'
+    },
+    deletedBy: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      field: 'deleted_by'
     }
   },
   {
@@ -133,7 +190,29 @@ PortfolioAlbum.init(
     paranoid: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    deletedAt: 'deleted_at'
+    deletedAt: 'deleted_at',
+    hooks: {
+      beforeCreate: async (album, options) => {
+        if (!album.albumSlug && album.albumName) {
+          album.albumSlug = generateUniqueSlug(album.albumName);
+        }
+
+        if (options.userId) {
+          album.createdBy = options.userId;
+        }
+      },
+      beforeUpdate: async (album, options) => {
+        if (options.userId) {
+          album.updatedBy = options.userId;
+        }
+      },
+      beforeDestroy: async (album, options) => {
+        if (options.userId) {
+          album.deletedBy = options.userId;
+        }
+        await album.save({ hooks: false });
+      }
+    }
   }
 );
 

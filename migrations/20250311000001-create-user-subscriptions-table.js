@@ -122,11 +122,139 @@ export async function up(queryInterface, Sequelize) {
       defaultValue: 0,
       comment: 'Snapshot: Max published portfolios'
     },
-    max_featured_portfolios: {
+    // Category Snapshot
+    category_id: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      comment: 'Snapshot: Category ID'
+    },
+    category_name: {
+      type: Sequelize.STRING(255),
+      allowNull: false,
+      comment: 'Snapshot: Category name'
+    },
+    category_slug: {
+      type: Sequelize.STRING(100),
+      allowNull: false,
+      comment: 'Snapshot: Category slug'
+    },
+    city_tier: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      comment: 'Snapshot: City tier (1, 2, 3, 4, 5)'
+    },
+    // Album & Media Quotas Snapshot
+    max_albums_per_portfolio: {
       type: Sequelize.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      comment: 'Snapshot: Max featured portfolios'
+      comment: 'Snapshot: Max albums per portfolio'
+    },
+    max_photos_per_album: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Max photos per album'
+    },
+    max_videos_per_album: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Max videos per album'
+    },
+    max_storage_mb: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      comment: 'Snapshot: Max storage in MB (NULL = unlimited)'
+    },
+    allow_videos: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Snapshot: Videos allowed'
+    },
+    // Boost Features Snapshot
+    is_featured_allowed: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Snapshot: Featured allowed'
+    },
+    featured_days: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Featured duration days'
+    },
+    is_boosted_allowed: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Snapshot: Boosted allowed'
+    },
+    boosted_days: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Boosted duration days'
+    },
+    can_be_recommended: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Snapshot: Can be platform recommended'
+    },
+    // Visibility Snapshot
+    priority_score: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Priority score'
+    },
+    search_boost_multiplier: {
+      type: Sequelize.DECIMAL(5, 2),
+      allowNull: false,
+      defaultValue: 1.0,
+      comment: 'Snapshot: Search boost multiplier'
+    },
+    national_visibility: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Snapshot: National visibility'
+    },
+    // Republish Snapshot
+    max_republish_count: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Snapshot: Max republish count (0 = unlimited)'
+    },
+    republish_cooldown_days: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 7,
+      comment: 'Snapshot: Republish cooldown days'
+    },
+    // Management Snapshot
+    is_auto_approve_enabled: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Snapshot: Auto-approve enabled'
+    },
+    support_level: {
+      type: Sequelize.STRING(20),
+      allowNull: false,
+      defaultValue: 'standard',
+      comment: 'Snapshot: Support level'
+    },
+    // Usage Tracking
+    storage_used_mb: {
+      type: Sequelize.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.00,
+      comment: 'Current storage usage in MB'
     },
     // Features Snapshot (includes all other plan settings)
     features: {
@@ -190,9 +318,10 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: {}
     },
-    notes: {
+    internal_notes: {
       type: Sequelize.TEXT,
-      allowNull: true
+      allowNull: true,
+      comment: 'Internal admin/staff notes about this subscription'
     },
     // Audit Fields
     created_by: {
@@ -261,8 +390,18 @@ export async function up(queryInterface, Sequelize) {
     name: 'idx_user_subscriptions_user_status'
   });
 
+  // Index for category-based queries
+  await queryInterface.addIndex('user_subscriptions', ['category_id'], {
+    name: 'idx_user_subscriptions_category_id'
+  });
+
+  // Composite index for user + category + status queries
+  await queryInterface.addIndex('user_subscriptions', ['user_id', 'category_id', 'status'], {
+    name: 'idx_user_subscriptions_user_category_status'
+  });
+
   // Unique constraint: Only one active subscription per user per category
-  await queryInterface.addIndex('user_subscriptions', ['user_id', 'plan_id'], {
+  await queryInterface.addIndex('user_subscriptions', ['user_id', 'category_id'], {
     name: 'unique_user_category_active_subscription',
     unique: true,
     where: {

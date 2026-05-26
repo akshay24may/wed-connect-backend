@@ -53,6 +53,26 @@ export async function up(queryInterface, Sequelize) {
       allowNull: true,
       defaultValue: []
     },
+    review_media_storage_type: {
+      type: Sequelize.ENUM(
+        'local',
+        'cloudinary',
+        'aws_s3',
+        'cloudflare_r2',
+        'gcs',
+        'azure_blob',
+        'digital_ocean',
+        'backblaze_b2',
+        'external',
+        'other'
+      ),
+      allowNull: true
+    },
+    recommended_for: {
+      type: Sequelize.JSONB,
+      allowNull: true,
+      defaultValue: []
+    },
     vendor_response: {
       type: Sequelize.TEXT,
       allowNull: true
@@ -85,6 +105,48 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.BOOLEAN,
       allowNull: false,
       defaultValue: false
+    },
+    rejected_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    },
+    rejected_at: {
+      type: Sequelize.DATE,
+      allowNull: true
+    },
+    rejection_reason: {
+      type: Sequelize.TEXT,
+      allowNull: true
+    },
+    created_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    },
+    updated_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true
+    },
+    deleted_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
     },
     created_at: {
       type: Sequelize.DATE,
@@ -120,6 +182,14 @@ export async function up(queryInterface, Sequelize) {
 
   await queryInterface.addIndex('portfolio_reviews', ['is_approved'], {
     name: 'idx_portfolio_reviews_is_approved'
+  });
+
+  await queryInterface.addIndex('portfolio_reviews', ['rejected_by'], {
+    name: 'idx_portfolio_reviews_rejected_by'
+  });
+
+  await queryInterface.addIndex('portfolio_reviews', ['deleted_at'], {
+    name: 'idx_portfolio_reviews_deleted_at'
   });
 
   await queryInterface.addIndex('portfolio_reviews', ['portfolio_id', 'user_id'], {

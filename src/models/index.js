@@ -13,7 +13,7 @@ import UserSubscription from './UserSubscription.js';
 import DataRequest from './DataRequest.js';
 import Category from './Category.js';
 import Portfolio from './Portfolio.js';
-import PortfolioMedia from './PortfolioMedia.js';
+import Media from './Media.js';
 import PortfolioAlbum from './PortfolioAlbum.js';
 import PortfolioReview from './PortfolioReview.js';
 import PortfolioInquiry from './PortfolioInquiry.js';
@@ -33,6 +33,7 @@ import OtherMedia from './OtherMedia.js';
 import OtpVerification from './OtpVerification.js';
 import UserSearch from './UserSearch.js';
 import VendorProfile from './VendorProfile.js';
+import BusinessProfile from './BusinessProfile.js';
 
 const models = {
   Country,
@@ -51,7 +52,7 @@ const models = {
   DataRequest,
   Category,
   Portfolio,
-  PortfolioMedia,
+  Media,
   PortfolioAlbum,
   PortfolioReview,
   PortfolioInquiry,
@@ -68,7 +69,8 @@ const models = {
   OtherMedia,
   OtpVerification,
   UserSearch,
-  VendorProfile
+  VendorProfile,
+  BusinessProfile
 };
 
 // Set up associations
@@ -130,7 +132,7 @@ Category.associate(models);
 
 // Portfolio associations
 Portfolio.associate(models);
-PortfolioMedia.associate(models);
+Media.associate(models);
 PortfolioAlbum.associate(models);
 PortfolioReview.associate(models);
 PortfolioInquiry.associate(models);
@@ -165,6 +167,9 @@ UserSearch.associate(models);
 
 // VendorProfile associations
 VendorProfile.associate(models);
+
+// BusinessProfile associations
+BusinessProfile.associate(models);
 
 export { sequelize };
 export default models;

@@ -2,21 +2,26 @@ import { Model, DataTypes } from 'sequelize';
 import sequelize from '#config/database.js';
 import { getFullUrl } from '#utils/storageHelper.js';
 
-class PortfolioMedia extends Model {
+class Media extends Model {
   static associate(models) {
-    this.belongsTo(models.Portfolio, {
-      foreignKey: 'portfolio_id',
-      as: 'portfolio'
+    this.belongsTo(models.User, {
+      foreignKey: 'userId',
+      as: 'user'
     });
 
-    this.belongsTo(models.PortfolioAlbum, {
-      foreignKey: 'albumId',
-      as: 'album'
+    this.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'creator'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'deletedBy',
+      as: 'deleter'
     });
   }
 }
 
-PortfolioMedia.init(
+Media.init(
   {
     id: {
       type: DataTypes.BIGINT,
@@ -24,15 +29,30 @@ PortfolioMedia.init(
       autoIncrement: true,
       allowNull: false
     },
-    portfolioId: {
+    entityType: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      field: 'entity_type'
+    },
+    entityId: {
       type: DataTypes.BIGINT,
       allowNull: false,
-      field: 'portfolio_id'
+      field: 'entity_id'
     },
-    albumId: {
+    subEntityType: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'sub_entity_type'
+    },
+    subEntityId: {
       type: DataTypes.BIGINT,
       allowNull: true,
-      field: 'album_id'
+      field: 'sub_entity_id'
+    },
+    userId: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      field: 'user_id'
     },
     mediaType: {
       type: DataTypes.ENUM('image', 'video'),
@@ -109,22 +129,50 @@ PortfolioMedia.init(
       defaultValue: 'local',
       field: 'storage_type'
     },
-    deletedAt: {
-      type: DataTypes.DATE,
+    createdBy: {
+      type: DataTypes.BIGINT,
       allowNull: true,
-      field: 'deleted_at'
+      field: 'created_by'
+    },
+    updatedBy: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      field: 'updated_by'
+    },
+    deletedBy: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      field: 'deleted_by'
     }
   },
   {
     sequelize,
-    tableName: 'portfolio_media',
+    tableName: 'media',
     timestamps: true,
     underscored: true,
     paranoid: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    deletedAt: 'deleted_at'
+    deletedAt: 'deleted_at',
+    hooks: {
+      beforeCreate: async (media, options) => {
+        if (options.userId) {
+          media.createdBy = options.userId;
+        }
+      },
+      beforeUpdate: async (media, options) => {
+        if (options.userId) {
+          media.updatedBy = options.userId;
+        }
+      },
+      beforeDestroy: async (media, options) => {
+        if (options.userId) {
+          media.deletedBy = options.userId;
+        }
+        await media.save({ hooks: false });
+      }
+    }
   }
 );
 
-export default PortfolioMedia;
+export default Media;

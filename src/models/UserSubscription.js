@@ -169,15 +169,141 @@ UserSubscription.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'max_published_portfolios',
-      comment: 'Snapshot: Max published portfolios'
+      field: 'max_published_portfolios'
     },
-    maxFeaturedPortfolios: {
+    // Category Snapshot
+    categoryId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: 'category_id'
+    },
+    categoryName: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      field: 'category_name'
+    },
+    categorySlug: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      field: 'category_slug'
+    },
+    cityTier: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: 'city_tier'
+    },
+    // Album & Media Quotas Snapshot
+    maxAlbumsPerPortfolio: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'max_featured_portfolios',
-      comment: 'Snapshot: Max featured portfolios'
+      field: 'max_albums_per_portfolio'
+    },
+    maxPhotosPerAlbum: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'max_photos_per_album'
+    },
+    maxVideosPerAlbum: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'max_videos_per_album'
+    },
+    maxStorageMb: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'max_storage_mb'
+    },
+    allowVideos: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'allow_videos'
+    },
+    // Boost Features Snapshot
+    isFeaturedAllowed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_featured_allowed'
+    },
+    featuredDays: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'featured_days'
+    },
+    isBoostedAllowed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_boosted_allowed'
+    },
+    boostedDays: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'boosted_days'
+    },
+    canBeRecommended: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'can_be_recommended'
+    },
+    // Visibility Snapshot
+    priorityScore: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'priority_score'
+    },
+    searchBoostMultiplier: {
+      type: DataTypes.DECIMAL(5, 2),
+      allowNull: false,
+      defaultValue: 1.0,
+      field: 'search_boost_multiplier'
+    },
+    nationalVisibility: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'national_visibility'
+    },
+    // Republish Snapshot
+    maxRepublishCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'max_republish_count'
+    },
+    republishCooldownDays: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 7,
+      field: 'republish_cooldown_days'
+    },
+    // Management Snapshot
+    isAutoApproveEnabled: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_auto_approve_enabled'
+    },
+    supportLevel: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      defaultValue: 'standard',
+      field: 'support_level'
+    },
+    // Usage Tracking
+    storageUsedMb: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.00,
+      field: 'storage_used_mb'
     },
     // Features Snapshot (includes all other plan settings)
     features: {
@@ -239,10 +365,10 @@ UserSubscription.init(
       defaultValue: {},
       field: 'metadata'
     },
-    notes: {
+    internalNotes: {
       type: DataTypes.TEXT,
       allowNull: true,
-      field: 'notes'
+      field: 'internal_notes'
     },
     // Audit Fields
     createdBy: {

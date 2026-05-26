@@ -1,30 +1,36 @@
 export async function up(queryInterface, Sequelize) {
-  await queryInterface.createTable('portfolio_media', {
+  await queryInterface.createTable('media', {
     id: {
       type: Sequelize.BIGINT,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false
     },
-    portfolio_id: {
+    entity_type: {
+      type: Sequelize.STRING(50),
+      allowNull: false
+    },
+    entity_id: {
+      type: Sequelize.BIGINT,
+      allowNull: false
+    },
+    sub_entity_type: {
+      type: Sequelize.STRING(50),
+      allowNull: true
+    },
+    sub_entity_id: {
+      type: Sequelize.BIGINT,
+      allowNull: true
+    },
+    user_id: {
       type: Sequelize.BIGINT,
       allowNull: false,
       references: {
-        model: 'portfolios',
+        model: 'users',
         key: 'id'
       },
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE'
-    },
-    album_id: {
-      type: Sequelize.BIGINT,
-      allowNull: true,
-      references: {
-        model: 'portfolio_albums',
-        key: 'id'
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'SET NULL'
     },
     media_type: {
       type: Sequelize.ENUM('image', 'video'),
@@ -81,6 +87,30 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: 'local'
     },
+    created_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    },
+    updated_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true
+    },
+    deleted_by: {
+      type: Sequelize.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    },
     deleted_at: {
       type: Sequelize.DATE,
       allowNull: true
@@ -97,31 +127,35 @@ export async function up(queryInterface, Sequelize) {
     }
   });
 
-  await queryInterface.addIndex('portfolio_media', ['portfolio_id'], {
-    name: 'idx_portfolio_media_portfolio_id'
+  await queryInterface.addIndex('media', ['entity_type', 'entity_id'], {
+    name: 'idx_media_entity'
   });
 
-  await queryInterface.addIndex('portfolio_media', ['album_id'], {
-    name: 'idx_portfolio_media_album_id'
+  await queryInterface.addIndex('media', ['entity_type', 'entity_id', 'sub_entity_type', 'sub_entity_id'], {
+    name: 'idx_media_entity_sub_entity'
   });
 
-  await queryInterface.addIndex('portfolio_media', ['media_type'], {
-    name: 'idx_portfolio_media_media_type'
+  await queryInterface.addIndex('media', ['user_id'], {
+    name: 'idx_media_user_id'
   });
 
-  await queryInterface.addIndex('portfolio_media', ['portfolio_id', 'is_primary'], {
-    name: 'idx_portfolio_media_is_primary'
+  await queryInterface.addIndex('media', ['media_type'], {
+    name: 'idx_media_media_type'
   });
 
-  await queryInterface.addIndex('portfolio_media', ['portfolio_id', 'display_order'], {
-    name: 'idx_portfolio_media_display_order'
+  await queryInterface.addIndex('media', ['entity_type', 'entity_id', 'is_primary'], {
+    name: 'idx_media_is_primary'
   });
 
-  await queryInterface.addIndex('portfolio_media', ['deleted_at'], {
-    name: 'idx_portfolio_media_deleted_at'
+  await queryInterface.addIndex('media', ['entity_type', 'entity_id', 'display_order'], {
+    name: 'idx_media_display_order'
+  });
+
+  await queryInterface.addIndex('media', ['deleted_at'], {
+    name: 'idx_media_deleted_at'
   });
 }
 
 export async function down(queryInterface) {
-  await queryInterface.dropTable('portfolio_media');
+  await queryInterface.dropTable('media');
 }

@@ -202,6 +202,24 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: 0
     },
+    is_verified: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    verified_at: {
+      type: Sequelize.DATE,
+      allowNull: true
+    },
+    verification_badge_type: {
+      type: Sequelize.ENUM('basic', 'premium', 'elite'),
+      allowNull: true
+    },
+    trust_score: {
+      type: Sequelize.DECIMAL(3, 2),
+      allowNull: false,
+      defaultValue: 0.00
+    },
     created_by: {
       type: Sequelize.BIGINT,
       allowNull: true,
@@ -272,6 +290,18 @@ export async function up(queryInterface, Sequelize) {
 
   await queryInterface.addIndex('users', ['referred_by'], {
     name: 'idx_users_referred_by'
+  });
+
+  await queryInterface.addIndex('users', ['is_verified'], {
+    name: 'idx_users_is_verified'
+  });
+
+  await queryInterface.addIndex('users', ['verification_badge_type'], {
+    name: 'idx_users_verification_badge_type'
+  });
+
+  await queryInterface.addIndex('users', ['trust_score'], {
+    name: 'idx_users_trust_score'
   });
 }
 
