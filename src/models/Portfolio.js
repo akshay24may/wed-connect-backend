@@ -30,9 +30,13 @@ class Portfolio extends Model {
       as: 'city'
     });
 
-    this.hasMany(models.PortfolioMedia, {
-      foreignKey: 'portfolioId',
-      as: 'media'
+    // Media association (renamed from PortfolioMedia)
+    this.hasMany(models.Media, {
+      foreignKey: 'entityId',
+      as: 'media',
+      scope: {
+        entityType: 'portfolio'
+      }
     });
 
     this.hasMany(models.PortfolioAlbum, {
@@ -94,6 +98,17 @@ Portfolio.init(
       type: DataTypes.BIGINT,
       allowNull: true,
       field: 'user_subscription_id'
+    },
+    cityTier: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      field: 'city_tier'
+    },
+    isFreePlanPortfolio: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_free_plan_portfolio'
     },
     title: {
       type: DataTypes.STRING(200),

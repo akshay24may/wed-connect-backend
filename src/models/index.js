@@ -7,32 +7,32 @@ import Permission from './Permission.js';
 import RolePermission from './RolePermission.js';
 import User from './User.js';
 import UserSession from './UserSession.js';
-import UserSocialAccount from './UserSocialAccount.js';
+// import UserSocialAccount from './UserSocialAccount.js';
 import SubscriptionPlan from './SubscriptionPlan.js';
 import UserSubscription from './UserSubscription.js';
-import DataRequest from './DataRequest.js';
+// import DataRequest from './DataRequest.js';
 import Category from './Category.js';
 import Portfolio from './Portfolio.js';
 import Media from './Media.js';
 import PortfolioAlbum from './PortfolioAlbum.js';
 import PortfolioReview from './PortfolioReview.js';
-import PortfolioInquiry from './PortfolioInquiry.js';
-import PortfolioOffer from './PortfolioOffer.js';
-import ModerationReport from './ModerationReport.js';
-import ChatRoom from './ChatRoom.js';
-import ChatMessage from './ChatMessage.js';
-import ListingOffer from './ListingOffer.js';
+// import PortfolioInquiry from './PortfolioInquiry.js';
+// import PortfolioOffer from './PortfolioOffer.js';
+// import ModerationReport from './ModerationReport.js';
+// import ChatRoom from './ChatRoom.js';
+// import ChatMessage from './ChatMessage.js';
+// import ListingOffer from './ListingOffer.js';
 import Invoice from './Invoice.js';
 import Transaction from './Transaction.js';
-import UserFavorite from './UserFavorite.js';
-import UserActivityLog from './UserActivityLog.js';
-import UserLocationPreference from './UserLocationPreference.js';
-import UserNotification from './UserNotification.js';
-import UserNotificationPreference from './UserNotificationPreference.js';
-import OtherMedia from './OtherMedia.js';
+// import UserFavorite from './UserFavorite.js';
+// import UserActivityLog from './UserActivityLog.js';
+// import UserLocationPreference from './UserLocationPreference.js';
+// import UserNotification from './UserNotification.js';
+// import UserNotificationPreference from './UserNotificationPreference.js';
+// import OtherMedia from './OtherMedia.js';
 import OtpVerification from './OtpVerification.js';
-import UserSearch from './UserSearch.js';
-import VendorProfile from './VendorProfile.js';
+// import UserSearch from './UserSearch.js';
+// import VendorProfile from './VendorProfile.js';
 import BusinessProfile from './BusinessProfile.js';
 
 const models = {
@@ -44,32 +44,32 @@ const models = {
   RolePermission,
   User,
   UserSession,
-  UserSocialAccount,
+  // UserSocialAccount,
   SubscriptionPlan,
   UserSubscription,
   Invoice,
   Transaction,
-  DataRequest,
+  // DataRequest,
   Category,
   Portfolio,
   Media,
   PortfolioAlbum,
   PortfolioReview,
-  PortfolioInquiry,
-  PortfolioOffer,
-  ModerationReport,
-  ChatRoom,
-  ChatMessage,
-  ListingOffer,
-  UserFavorite,
-  UserActivityLog,
-  UserLocationPreference,
-  UserNotification,
-  UserNotificationPreference,
-  OtherMedia,
+  // PortfolioInquiry,
+  // PortfolioOffer,
+  // ModerationReport,
+  // ChatRoom,
+  // ChatMessage,
+  // ListingOffer,
+  // UserFavorite,
+  // UserActivityLog,
+  // UserLocationPreference,
+  // UserNotification,
+  // UserNotificationPreference,
+  // OtherMedia,
   OtpVerification,
-  UserSearch,
-  VendorProfile,
+  // UserSearch,
+  // VendorProfile,
   BusinessProfile
 };
 
@@ -116,7 +116,7 @@ City.associate(models);
 // User associations
 User.associate(models);
 UserSession.associate(models);
-UserSocialAccount.associate(models);
+// UserSocialAccount.associate(models);
 
 // SubscriptionPlan associations
 SubscriptionPlan.associate(models);
@@ -125,7 +125,7 @@ SubscriptionPlan.associate(models);
 UserSubscription.associate(models);
 
 // Data request associations
-DataRequest.associate(models);
+// DataRequest.associate(models);
 
 // Category associations
 Category.associate(models);
@@ -135,38 +135,38 @@ Portfolio.associate(models);
 Media.associate(models);
 PortfolioAlbum.associate(models);
 PortfolioReview.associate(models);
-PortfolioInquiry.associate(models);
-PortfolioOffer.associate(models);
+// PortfolioInquiry.associate(models);
+// PortfolioOffer.associate(models);
 
-// Chat associations
-ChatRoom.associate(models);
-ChatMessage.associate(models);
-ListingOffer.associate(models);
+// Chat associations (disabled for Phase 1)
+// ChatRoom.associate(models);
+// ChatMessage.associate(models);
+// ListingOffer.associate(models);
 
-// UserFavorite associations
-UserFavorite.associate(models);
+// UserFavorite associations (disabled for Phase 1)
+// UserFavorite.associate(models);
 
-// User activity and notification associations
-UserActivityLog.associate(models);
-UserLocationPreference.associate(models);
-UserNotification.associate(models);
-UserNotificationPreference.associate(models);
+// User activity and notification associations (disabled for Phase 1)
+// UserActivityLog.associate(models);
+// UserLocationPreference.associate(models);
+// UserNotification.associate(models);
+// UserNotificationPreference.associate(models);
 
 // Invoice and Transaction associations
 Invoice.associate(models);
 Transaction.associate(models);
 
-// OtherMedia associations
-OtherMedia.associate(models);
+// OtherMedia associations (disabled for Phase 1)
+// OtherMedia.associate(models);
 
-// ModerationReport associations
-ModerationReport.associate(models);
+// ModerationReport associations (disabled for Phase 1)
+// ModerationReport.associate(models);
 
-// UserSearch associations
-UserSearch.associate(models);
+// UserSearch associations (disabled for Phase 1)
+// UserSearch.associate(models);
 
-// VendorProfile associations
-VendorProfile.associate(models);
+// VendorProfile associations (disabled for Phase 1)
+// VendorProfile.associate(models);
 
 // BusinessProfile associations
 BusinessProfile.associate(models);

@@ -20,9 +20,12 @@ class PortfolioAlbum extends Model {
       as: 'city'
     });
 
-    this.hasMany(models.PortfolioMedia, {
-      foreignKey: 'albumId',
-      as: 'media'
+    this.hasMany(models.Media, {
+      foreignKey: 'subEntityId',
+      as: 'media',
+      scope: {
+        subEntityType: 'album'
+      }
     });
 
     this.belongsTo(models.User, {

@@ -25,20 +25,21 @@ class User extends Model {
       as: "sessions",
     });
 
-    this.hasMany(models.UserSocialAccount, {
-      foreignKey: "user_id",
-      as: "socialAccounts",
-    });
+    // Phase 1: Disabled associations
+    // this.hasMany(models.UserSocialAccount, {
+    //   foreignKey: "user_id",
+    //   as: "socialAccounts",
+    // });
 
-    this.hasMany(models.UserNotification, {
-      foreignKey: "user_id",
-      as: "notifications",
-    });
+    // this.hasMany(models.UserNotification, {
+    //   foreignKey: "user_id",
+    //   as: "notifications",
+    // });
 
-    this.hasOne(models.UserNotificationPreference, {
-      foreignKey: "user_id",
-      as: "notificationPreferences",
-    });
+    // this.hasOne(models.UserNotificationPreference, {
+    //   foreignKey: "user_id",
+    //   as: "notificationPreferences",
+    // });
 
     this.belongsTo(models.User, {
       foreignKey: "createdBy",

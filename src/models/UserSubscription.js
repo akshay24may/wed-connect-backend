@@ -4,35 +4,32 @@ import sequelize from '#config/database.js';
 class UserSubscription extends Model {
   static associate(models) {
     this.belongsTo(models.User, {
-      foreignKey: 'userId',
+      foreignKey: 'user_id',
       as: 'user'
     });
 
     this.belongsTo(models.SubscriptionPlan, {
-      foreignKey: 'planId',
+      foreignKey: 'plan_id',
       as: 'plan'
     });
 
-    // Self-reference for subscription chain
-    this.belongsTo(models.UserSubscription, {
-      foreignKey: 'previousSubscriptionId',
-      as: 'previousSubscription'
-    });
-
-    // Has many Portfolios (for quota tracking)
     this.hasMany(models.Portfolio, {
-      foreignKey: 'userSubscriptionId',
+      foreignKey: 'user_subscription_id',
       as: 'portfolios'
     });
 
-    // Audit associations
+    this.belongsTo(models.UserSubscription, {
+      foreignKey: 'previous_subscription_id',
+      as: 'previousSubscription'
+    });
+
     this.belongsTo(models.User, {
-      foreignKey: 'createdBy',
+      foreignKey: 'created_by',
       as: 'creator'
     });
 
     this.belongsTo(models.User, {
-      foreignKey: 'deletedBy',
+      foreignKey: 'deleted_by',
       as: 'deleter'
     });
   }
@@ -56,7 +53,6 @@ UserSubscription.init(
       allowNull: false,
       field: 'plan_id'
     },
-
     endsAt: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -67,7 +63,6 @@ UserSubscription.init(
       allowNull: true,
       field: 'activated_at'
     },
-    // Status & Lifecycle
     status: {
       type: DataTypes.ENUM('pending', 'active', 'expired', 'cancelled', 'suspended'),
       allowNull: false,
@@ -85,7 +80,6 @@ UserSubscription.init(
       allowNull: true,
       field: 'trial_ends_at'
     },
-    // Auto-Renewal
     autoRenew: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -102,7 +96,6 @@ UserSubscription.init(
       allowNull: true,
       field: 'cancellation_reason'
     },
-    // Reminders
     renewalReminderSent: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -115,7 +108,6 @@ UserSubscription.init(
       defaultValue: false,
       field: 'expiry_reminder_sent'
     },
-    // Plan Identification Snapshot
     planName: {
       type: DataTypes.STRING(255),
       allowNull: false,
@@ -131,7 +123,6 @@ UserSubscription.init(
       allowNull: false,
       field: 'plan_version'
     },
-    // Pricing Snapshot
     basePrice: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
@@ -164,14 +155,12 @@ UserSubscription.init(
       allowNull: false,
       field: 'duration_days'
     },
-    // Portfolio Quotas Snapshot
     maxPublishedPortfolios: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0,
+      defaultValue: 1,
       field: 'max_published_portfolios'
     },
-    // Category Snapshot
     categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -188,11 +177,10 @@ UserSubscription.init(
       field: 'category_slug'
     },
     cityTier: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(20),
       allowNull: false,
       field: 'city_tier'
     },
-    // Album & Media Quotas Snapshot
     maxAlbumsPerPortfolio: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -222,7 +210,6 @@ UserSubscription.init(
       defaultValue: false,
       field: 'allow_videos'
     },
-    // Boost Features Snapshot
     isFeaturedAllowed: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -253,7 +240,6 @@ UserSubscription.init(
       defaultValue: false,
       field: 'can_be_recommended'
     },
-    // Visibility Snapshot
     priorityScore: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -272,7 +258,6 @@ UserSubscription.init(
       defaultValue: false,
       field: 'national_visibility'
     },
-    // Republish Snapshot
     maxRepublishCount: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -285,7 +270,6 @@ UserSubscription.init(
       defaultValue: 7,
       field: 'republish_cooldown_days'
     },
-    // Management Snapshot
     isAutoApproveEnabled: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -298,21 +282,18 @@ UserSubscription.init(
       defaultValue: 'standard',
       field: 'support_level'
     },
-    // Usage Tracking
     storageUsedMb: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       defaultValue: 0.00,
       field: 'storage_used_mb'
     },
-    // Features Snapshot (includes all other plan settings)
     features: {
       type: DataTypes.JSON,
       allowNull: false,
       defaultValue: {},
       field: 'features'
     },
-    // Payment Reference
     invoiceId: {
       type: DataTypes.BIGINT,
       allowNull: true,
@@ -334,7 +315,6 @@ UserSubscription.init(
       defaultValue: 0.00,
       field: 'amount_paid'
     },
-    // Upgrade/Downgrade Tracking
     previousSubscriptionId: {
       type: DataTypes.BIGINT,
       allowNull: true,
@@ -358,7 +338,6 @@ UserSubscription.init(
       defaultValue: 0.00,
       field: 'proration_credit'
     },
-    // Metadata & Notes
     metadata: {
       type: DataTypes.JSON,
       allowNull: false,
@@ -370,7 +349,6 @@ UserSubscription.init(
       allowNull: true,
       field: 'internal_notes'
     },
-    // Audit Fields
     createdBy: {
       type: DataTypes.BIGINT,
       allowNull: true,
@@ -397,17 +375,27 @@ UserSubscription.init(
     updatedAt: 'updated_at',
     deletedAt: 'deleted_at',
     hooks: {
-      beforeUpdate: async (subscription, options) => {
-        if (options.userId && options.userName) {
-          const currentUpdates = subscription.updatedBy || [];
-          subscription.updatedBy = [
+      beforeCreate: async (instance, options) => {
+        if (options.userId) {
+          instance.createdBy = options.userId;
+        }
+      },
+      beforeUpdate: async (instance, options) => {
+        if (options.userId) {
+          const currentUpdates = instance.updatedBy || [];
+          instance.updatedBy = [
             ...currentUpdates,
             {
               userId: options.userId,
-              userName: options.userName,
               timestamp: new Date().toISOString()
             }
           ];
+        }
+      },
+      beforeDestroy: async (instance, options) => {
+        if (options.userId) {
+          instance.deletedBy = options.userId;
+          await instance.save({ hooks: false });
         }
       }
     }

@@ -4,9 +4,15 @@ import { getFullUrl } from '#utils/storageHelper.js';
 
 class Category extends Model {
   static associate(models) {
-    this.hasMany(models.Listing, {
+    // Phase 1: Portfolio associations
+    this.hasMany(models.Portfolio, {
       foreignKey: 'categoryId',
-      as: 'listings'
+      as: 'portfolios'
+    });
+    
+    this.hasMany(models.SubscriptionPlan, {
+      foreignKey: 'categoryId',
+      as: 'subscriptionPlans'
     });
   }
 }

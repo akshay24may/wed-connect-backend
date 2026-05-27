@@ -1,12 +1,42 @@
 import express from 'express';
 import authRoutes from './auth/authRoutes.js';
 import profileRoutes from './common/profileRoutes.js';
-import vendorProfileRoutes from './vendor/vendorProfileRoutes.js';
+import businessProfileRoutes from './common/businessProfileRoutes.js';
+import vendorPortfolioRoutes from './vendor/portfolioRoutes.js';
+import vendorPortfolioAlbumRoutes from './vendor/portfolioAlbumRoutes.js';
+import vendorReviewRoutes from './vendor/reviewRoutes.js';
+import vendorCategoryRoutes from './vendor/categoryRoutes.js';
+import vendorSubscriptionRoutes from './vendor/subscriptionRoutes.js';
+import panelPortfolioRoutes from './panel/portfolioRoutes.js';
+import panelReviewRoutes from './panel/reviewRoutes.js';
+import panelCategoryRoutes from './panel/categoryRoutes.js';
+import panelSubscriptionRoutes from './panel/subscriptionRoutes.js';
+import publicPortfolioRoutes from './public/portfolioRoutes.js';
+import publicReviewRoutes from './public/reviewRoutes.js';
+import publicCategoryRoutes from './public/categoryRoutes.js';
+import publicSubscriptionRoutes from './public/subscriptionRoutes.js';
+import consumerReviewRoutes from './consumer/reviewRoutes.js';
+// import vendorProfileRoutes from './vendor/vendorProfileRoutes.js';
 
 const router = express.Router();
 
 router.use('/auth', authRoutes);
 router.use('/profile', profileRoutes);
-router.use('/vendor/profile', vendorProfileRoutes);
+router.use('/profile/business', businessProfileRoutes);
+router.use('/vendor/portfolios', vendorPortfolioRoutes);
+router.use('/vendor/portfolios', vendorPortfolioAlbumRoutes);
+router.use('/vendor', vendorReviewRoutes);
+router.use('/vendor', vendorCategoryRoutes);
+router.use('/vendor/subscriptions', vendorSubscriptionRoutes);
+router.use('/panel/portfolios', panelPortfolioRoutes);
+router.use('/panel', panelReviewRoutes);
+router.use('/panel', panelCategoryRoutes);
+router.use('/panel/subscriptions', panelSubscriptionRoutes);
+router.use('/public/portfolios', publicPortfolioRoutes);
+router.use('/public', publicReviewRoutes);
+router.use('/public', publicCategoryRoutes);
+router.use('/public/subscriptions', publicSubscriptionRoutes);
+router.use('/consumer', consumerReviewRoutes);
+// router.use('/vendor/profile', vendorProfileRoutes);
 
 export default router;

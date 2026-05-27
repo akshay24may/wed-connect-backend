@@ -105,9 +105,9 @@ export async function up(queryInterface, Sequelize) {
       comment: 'Category slug for quick lookups'
     },
     city_tier: {
-      type: Sequelize.INTEGER,
+      type: Sequelize.STRING(20),
       allowNull: false,
-      comment: 'City tier: 1, 2, 3, 4, 5'
+      comment: 'City tier: tier_1, tier_2, tier_3, tier_4, tier_5'
     },
     // Portfolio Quotas
     max_published_portfolios: {

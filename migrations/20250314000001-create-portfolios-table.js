@@ -56,6 +56,17 @@ export async function up(queryInterface, Sequelize) {
       onUpdate: "CASCADE",
       onDelete: "SET NULL",
     },
+    city_tier: {
+      type: Sequelize.STRING(20),
+      allowNull: false,
+      comment: 'City tier from cities table (tier_1, tier_2, tier_3, tier_4, tier_5)'
+    },
+    is_free_plan_portfolio: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Whether this portfolio was created using a free plan'
+    },
     title: {
       type: Sequelize.STRING(200),
       allowNull: false,
@@ -419,6 +430,18 @@ export async function up(queryInterface, Sequelize) {
 
   await queryInterface.addIndex("portfolios", ["user_subscription_id"], {
     name: "idx_portfolios_subscription_id",
+  });
+
+  await queryInterface.addIndex("portfolios", ["city_tier"], {
+    name: "idx_portfolios_city_tier",
+  });
+
+  await queryInterface.addIndex("portfolios", ["is_free_plan_portfolio"], {
+    name: "idx_portfolios_is_free_plan",
+  });
+
+  await queryInterface.addIndex("portfolios", ["category_id", "city_tier", "status"], {
+    name: "idx_portfolios_category_tier_status",
   });
 
   await queryInterface.addIndex("portfolios", ["last_republished_at"], {
