@@ -1,22 +1,22 @@
 import express from 'express';
 import PortfolioAlbumController from '#controllers/vendor/portfolioAlbumController.js';
-import authMiddleware from '#middleware/authMiddleware.js';
+import { authenticate, isVendor } from '#middleware/authMiddleware.js';
 import { uploadAlbumMedia } from '#uploads/uploadMiddleware.js';
 
 const router = express.Router();
 
-router.get('/:portfolioId/albums', authMiddleware, PortfolioAlbumController.getAlbums);
+router.get('/:portfolioId/albums', authenticate, isVendor, PortfolioAlbumController.getAlbums);
 
-router.get('/:portfolioId/albums/:albumId', authMiddleware, PortfolioAlbumController.getAlbum);
+router.get('/:portfolioId/albums/:albumId', authenticate, isVendor, PortfolioAlbumController.getAlbum);
 
-router.post('/:portfolioId/albums', authMiddleware, PortfolioAlbumController.createAlbum);
+router.post('/:portfolioId/albums', authenticate, isVendor, PortfolioAlbumController.createAlbum);
 
-router.put('/:portfolioId/albums/:albumId', authMiddleware, PortfolioAlbumController.updateAlbum);
+router.put('/:portfolioId/albums/:albumId', authenticate, isVendor, PortfolioAlbumController.updateAlbum);
 
-router.delete('/:portfolioId/albums/:albumId', authMiddleware, PortfolioAlbumController.deleteAlbum);
+router.delete('/:portfolioId/albums/:albumId', authenticate, isVendor, PortfolioAlbumController.deleteAlbum);
 
-router.patch('/:portfolioId/albums/:albumId/reorder', authMiddleware, PortfolioAlbumController.reorderAlbum);
+router.patch('/:portfolioId/albums/:albumId/reorder', authenticate, isVendor, PortfolioAlbumController.reorderAlbum);
 
-router.post('/albums/:albumId/media/upload', authMiddleware, uploadAlbumMedia, PortfolioAlbumController.uploadMedia);
+router.post('/albums/:albumId/media/upload', authenticate, isVendor, uploadAlbumMedia, PortfolioAlbumController.uploadMedia);
 
 export default router;

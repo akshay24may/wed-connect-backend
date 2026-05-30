@@ -265,13 +265,7 @@ export async function up(queryInterface, Sequelize) {
     // Payment Reference
     invoice_id: {
       type: Sequelize.BIGINT,
-      allowNull: true,
-      references: {
-        model: 'invoices',
-        key: 'id'
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'SET NULL'
+      allowNull: true
     },
     payment_method: {
       type: Sequelize.STRING(50),

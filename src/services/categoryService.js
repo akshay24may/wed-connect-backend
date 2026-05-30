@@ -5,9 +5,9 @@ import { generateUniqueSlug } from '#utils/customSlugify.js';
 class CategoryService {
   async getCategories(options = {}) {
     try {
-      const { page = 1, limit = 50, isActive } = options;
+      const { page = 1, limit = 50, isActive, groupSlug } = options;
 
-      const result = await categoryRepository.findAll({ page, limit, isActive });
+      const result = await categoryRepository.findAll({ page, limit, isActive, groupSlug });
 
       return {
         success: true,
@@ -103,6 +103,7 @@ class CategoryService {
       const data = {
         name: categoryData.name,
         slug,
+        groupSlug: categoryData.groupSlug,
         description: categoryData.description,
         colorCode: categoryData.colorCode,
         subtypes: categoryData.subtypes || [],
@@ -171,6 +172,7 @@ class CategoryService {
       const updateData = {};
       if (categoryData.name !== undefined) updateData.name = categoryData.name;
       if (categoryData.slug !== undefined) updateData.slug = categoryData.slug;
+      if (categoryData.groupSlug !== undefined) updateData.groupSlug = categoryData.groupSlug;
       if (categoryData.description !== undefined) updateData.description = categoryData.description;
       if (categoryData.colorCode !== undefined) updateData.colorCode = categoryData.colorCode;
       if (categoryData.subtypes !== undefined) updateData.subtypes = categoryData.subtypes;

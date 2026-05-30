@@ -1,23 +1,23 @@
 import express from 'express';
 import CategoryController from '#controllers/panel/categoryController.js';
-import authMiddleware from '#middleware/authMiddleware.js';
+import { authenticate, isPanelUser } from '#middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/categories', authMiddleware, CategoryController.getCategories);
+router.get('/categories', authenticate, isPanelUser, CategoryController.getCategories);
 
-router.get('/categories/:categoryId', authMiddleware, CategoryController.getCategory);
+router.get('/categories/:categoryId', authenticate, isPanelUser, CategoryController.getCategory);
 
-router.post('/categories', authMiddleware, CategoryController.createCategory);
+router.post('/categories', authenticate, isPanelUser, CategoryController.createCategory);
 
-router.put('/categories/:categoryId', authMiddleware, CategoryController.updateCategory);
+router.put('/categories/:categoryId', authenticate, isPanelUser, CategoryController.updateCategory);
 
-router.delete('/categories/:categoryId', authMiddleware, CategoryController.deleteCategory);
+router.delete('/categories/:categoryId', authenticate, isPanelUser, CategoryController.deleteCategory);
 
-router.patch('/categories/status/:categoryId', authMiddleware, CategoryController.toggleStatus);
+router.patch('/categories/status/:categoryId', authenticate, isPanelUser, CategoryController.toggleStatus);
 
-router.patch('/categories/featured/:categoryId', authMiddleware, CategoryController.toggleFeatured);
+router.patch('/categories/featured/:categoryId', authenticate, isPanelUser, CategoryController.toggleFeatured);
 
-router.patch('/categories/reorder/:categoryId', authMiddleware, CategoryController.reorderCategory);
+router.patch('/categories/reorder/:categoryId', authenticate, isPanelUser, CategoryController.reorderCategory);
 
 export default router;

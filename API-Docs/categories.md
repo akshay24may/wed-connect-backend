@@ -25,6 +25,7 @@ Complete API reference for category management across panel, vendor, and public 
 - `page` (number, optional) - Page number (default: 1)
 - `limit` (number, optional) - Items per page (default: 50)
 - `isActive` (boolean, optional) - Filter by active status
+- `groupSlug` (string, optional) - Filter by group slug
 
 **Response:**
 ```json
@@ -37,6 +38,7 @@ Complete API reference for category management across panel, vendor, and public 
         "id": 1,
         "name": "Photography",
         "slug": "photography",
+        "groupSlug": "visuals-and-beauty",
         "description": "Professional wedding photography services",
         "icon": "https://example.com/uploads/categories/photography-icon.png",
         "bannerImage": "https://example.com/uploads/categories/photography-banner.jpg",
@@ -80,6 +82,7 @@ Complete API reference for category management across panel, vendor, and public 
       "id": 1,
       "name": "Photography",
       "slug": "photography",
+      "groupSlug": "visuals-and-beauty",
       "description": "Professional wedding photography services",
       "icon": "https://example.com/uploads/categories/photography-icon.png",
       "bannerImage": "https://example.com/uploads/categories/photography-banner.jpg",
@@ -109,6 +112,7 @@ Complete API reference for category management across panel, vendor, and public 
 {
   "name": "Photography",
   "slug": "photography",
+  "groupSlug": "visuals-and-beauty",
   "description": "Professional wedding photography services",
   "colorCode": "#FF5733",
   "subtypes": ["Candid", "Traditional", "Pre-Wedding", "Drone"],
@@ -124,6 +128,7 @@ Complete API reference for category management across panel, vendor, and public 
 **Validation:**
 - `name` (required) - String, min 2 characters, unique
 - `slug` (optional) - Auto-generated if not provided, unique
+- `groupSlug` (optional) - String for grouping categories
 - `description` (optional) - Text
 - `colorCode` (optional) - Hex color code (e.g., #FF5733)
 - `subtypes` (optional) - Array of strings
@@ -164,6 +169,7 @@ Complete API reference for category management across panel, vendor, and public 
 ```json
 {
   "name": "Wedding Photography",
+  "groupSlug": "visuals-and-beauty",
   "description": "Updated description",
   "colorCode": "#FF6644",
   "subtypes": ["Candid", "Traditional", "Pre-Wedding", "Drone", "Cinematic"],
@@ -317,6 +323,7 @@ Complete API reference for category management across panel, vendor, and public 
         "id": 1,
         "name": "Photography",
         "slug": "photography",
+        "groupSlug": "visuals-and-beauty",
         "description": "Professional wedding photography services",
         "icon": "https://example.com/uploads/categories/photography-icon.png",
         "bannerImage": "https://example.com/uploads/categories/photography-banner.jpg",
@@ -358,6 +365,7 @@ Complete API reference for category management across panel, vendor, and public 
         "id": 1,
         "name": "Photography",
         "slug": "photography",
+        "groupSlug": "visuals-and-beauty",
         "description": "Professional wedding photography services",
         "icon": "https://example.com/uploads/categories/photography-icon.png",
         "bannerImage": "https://example.com/uploads/categories/photography-banner.jpg",
@@ -437,6 +445,7 @@ Complete API reference for category management across panel, vendor, and public 
 - Name must be unique
 - Slug auto-generated if not provided
 - Slug must be unique
+- Group Slug optional for UI grouping
 - Default values: `isFeatured: true`, `isActive: true`, `displayOrder: 0`
 
 ### Category Update
@@ -485,7 +494,7 @@ GET /api/panel/categories
 
 # Create new category
 POST /api/panel/categories
-Body: { "name": "Makeup Artists", "colorCode": "#FF69B4" }
+Body: { "name": "Makeup Artists", "groupSlug": "visuals-and-beauty", "colorCode": "#FF69B4" }
 
 # Update category
 PUT /api/panel/categories/5

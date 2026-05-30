@@ -37,6 +37,11 @@ Category.init(
       unique: true,
       field: 'slug'
     },
+    groupSlug: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: 'group_slug'
+    },
     description: {
       type: DataTypes.TEXT,
       allowNull: true,

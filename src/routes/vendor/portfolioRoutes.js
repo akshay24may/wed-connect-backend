@@ -1,41 +1,42 @@
 import express from 'express';
 import PortfolioController from '#controllers/vendor/portfolioController.js';
-import authMiddleware from '#middleware/authMiddleware.js';
+import { authenticate, isVendor } from '#middleware/authMiddleware.js';
 import { uploadPortfolioMedia } from '#uploads/uploadMiddleware.js';
 
 const router = express.Router();
 
-router.get('/', authMiddleware, PortfolioController.getPortfolios);
+router.get('/', authenticate, isVendor, PortfolioController.getPortfolios);
 
-router.get('/:portfolioId', authMiddleware, PortfolioController.getPortfolio);
+router.get('/:portfolioId', authenticate, isVendor, PortfolioController.getPortfolio);
 
-router.post('/', authMiddleware, PortfolioController.createPortfolio);
+router.post('/', authenticate, isVendor, PortfolioController.createPortfolio);
 
-router.put('/:portfolioId', authMiddleware, PortfolioController.updatePortfolio);
+router.put('/:portfolioId', authenticate, isVendor, PortfolioController.updatePortfolio);
 
-router.delete('/:portfolioId', authMiddleware, PortfolioController.deletePortfolio);
+router.delete('/:portfolioId', authenticate, isVendor, PortfolioController.deletePortfolio);
 
-router.post('/:portfolioId/republish', authMiddleware, PortfolioController.republishPortfolio);
+router.post('/:portfolioId/republish', authenticate, isVendor, PortfolioController.republishPortfolio);
 
-router.patch('/:portfolioId/status', authMiddleware, PortfolioController.updateStatus);
+router.patch('/:portfolioId/status', authenticate, isVendor, PortfolioController.updateStatus);
 
-router.patch('/:portfolioId/featured', authMiddleware, PortfolioController.updateFeaturedStatus);
+router.patch('/:portfolioId/featured', authenticate, isVendor, PortfolioController.updateFeaturedStatus);
 
 router.post(
   '/:portfolioId/media/upload',
-  authMiddleware,
+  authenticate,
+  isVendor,
   uploadPortfolioMedia,
   PortfolioController.uploadMedia
 );
 
-router.get('/:portfolioId/media', authMiddleware, PortfolioController.getMedia);
+router.get('/:portfolioId/media', authenticate, isVendor, PortfolioController.getMedia);
 
-router.put('/:portfolioId/media/:mediaId', authMiddleware, PortfolioController.updateMedia);
+router.put('/:portfolioId/media/:mediaId', authenticate, isVendor, PortfolioController.updateMedia);
 
-router.delete('/:portfolioId/media/:mediaId', authMiddleware, PortfolioController.deleteMedia);
+router.delete('/:portfolioId/media/:mediaId', authenticate, isVendor, PortfolioController.deleteMedia);
 
-router.patch('/:portfolioId/media/:mediaId/primary', authMiddleware, PortfolioController.setPrimaryMedia);
+router.patch('/:portfolioId/media/:mediaId/primary', authenticate, isVendor, PortfolioController.setPrimaryMedia);
 
-router.post('/:portfolioId/media/reorder', authMiddleware, PortfolioController.reorderMedia);
+router.post('/:portfolioId/media/reorder', authenticate, isVendor, PortfolioController.reorderMedia);
 
 export default router;

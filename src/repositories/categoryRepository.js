@@ -4,11 +4,12 @@ const { Category } = models;
 
 class CategoryRepository {
   async findAll(options = {}) {
-    const { page = 1, limit = 50, isActive } = options;
+    const { page = 1, limit = 50, isActive, groupSlug } = options;
     const offset = (page - 1) * limit;
 
     const where = {};
     if (isActive !== undefined) where.isActive = isActive;
+    if (groupSlug) where.groupSlug = groupSlug;
 
     const { rows: categories, count: total } = await Category.findAndCountAll({
       where,
@@ -39,6 +40,7 @@ class CategoryRepository {
         'id',
         'name',
         'slug',
+        'groupSlug',
         'description',
         'icon',
         'bannerImage',

@@ -1,20 +1,20 @@
 import express from 'express';
 import VendorReviewController from '#controllers/vendor/reviewController.js';
-import authMiddleware from '#middleware/authMiddleware.js';
+import { authenticate, isVendor } from '#middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/reviews', authMiddleware, VendorReviewController.getReviews);
+router.get('/reviews', authenticate, isVendor, VendorReviewController.getReviews);
 
 router.post(
   '/reviews/:reviewId/respond',
-  authMiddleware,
+  authenticate, isVendor,
   VendorReviewController.addResponse
 );
 
 router.put(
   '/reviews/:reviewId/response',
-  authMiddleware,
+  authenticate, isVendor,
   VendorReviewController.updateResponse
 );
 

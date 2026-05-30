@@ -355,7 +355,11 @@ export async function up(queryInterface, Sequelize) {
   });
 
   await queryInterface.addIndex('subscription_plans', ['category_id', 'city_tier'], {
-    name: 'idx_subscription_plans_category_tier',
+    name: 'idx_subscription_plans_category_tier'
+  });
+
+  await queryInterface.addIndex('subscription_plans', ['category_id', 'city_tier', 'billing_cycle', 'duration_days'], {
+    name: 'idx_sub_plans_cat_tier_cycle_duration',
     unique: true,
     where: {
       deleted_at: null

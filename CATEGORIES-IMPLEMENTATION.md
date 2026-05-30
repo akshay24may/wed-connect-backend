@@ -104,6 +104,7 @@ Implemented complete category management system with 10 endpoints across 3 user 
 - `id` (INTEGER) - Primary key
 - `name` (VARCHAR 100) - Category name, unique
 - `slug` (VARCHAR 100) - URL-friendly slug, unique
+- `group_slug` (VARCHAR 100) - Group category slug
 - `description` (TEXT) - Category description
 - `icon` (VARCHAR 500) - Icon image path
 - `banner_image` (VARCHAR 500) - Banner image path
@@ -189,6 +190,7 @@ Implemented complete category management system with 10 endpoints across 3 user 
 ### Category Creation
 - `name` (required) - Min 2 characters, unique
 - `slug` (optional) - Auto-generated, unique
+- `groupSlug` (optional) - String for grouping
 - `description` (optional) - Text
 - `colorCode` (optional) - Hex color code
 - `subtypes` (optional) - Array of strings

@@ -16,6 +16,10 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       unique: true
     },
+    group_slug: {
+      type: Sequelize.STRING(100),
+      allowNull: true
+    },
     description: {
       type: Sequelize.TEXT,
       allowNull: true

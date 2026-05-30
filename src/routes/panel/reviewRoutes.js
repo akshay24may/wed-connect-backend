@@ -1,29 +1,29 @@
 import express from 'express';
 import PanelReviewController from '#controllers/panel/reviewController.js';
-import authMiddleware from '#middleware/authMiddleware.js';
+import { authenticate, isPanelUser } from '#middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/reviews', authMiddleware, PanelReviewController.getReviews);
+router.get('/reviews', authenticate, isPanelUser, PanelReviewController.getReviews);
 
 router.post(
   '/reviews/:reviewId/approve',
-  authMiddleware,
+  authenticate, isPanelUser,
   PanelReviewController.approveReview
 );
 
 router.post(
   '/reviews/:reviewId/reject',
-  authMiddleware,
+  authenticate, isPanelUser,
   PanelReviewController.rejectReview
 );
 
 router.patch(
   '/reviews/:reviewId/featured',
-  authMiddleware,
+  authenticate, isPanelUser,
   PanelReviewController.toggleFeatured
 );
 
-router.delete('/reviews/:reviewId', authMiddleware, PanelReviewController.deleteReview);
+router.delete('/reviews/:reviewId', authenticate, isPanelUser, PanelReviewController.deleteReview);
 
 export default router;

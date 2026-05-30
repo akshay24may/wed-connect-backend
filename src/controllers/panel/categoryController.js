@@ -10,7 +10,7 @@ import {
 class CategoryController {
   static async getCategories(req, res) {
     try {
-      const { page = 1, limit = 50, isActive } = req.query;
+      const { page = 1, limit = 50, isActive, groupSlug } = req.query;
 
       const options = {
         page: parseInt(page),
@@ -19,6 +19,10 @@ class CategoryController {
 
       if (isActive !== undefined) {
         options.isActive = isActive === 'true';
+      }
+
+      if (groupSlug) {
+        options.groupSlug = groupSlug;
       }
 
       const result = await categoryService.getCategories(options);

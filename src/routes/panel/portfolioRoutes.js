@@ -1,17 +1,17 @@
 import express from 'express';
 import PortfolioController from '#controllers/panel/portfolioController.js';
-import authMiddleware from '#middleware/authMiddleware.js';
+import { authenticate, isPanelUser } from '#middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/', authMiddleware, PortfolioController.getPortfolios);
+router.get('/', authenticate, isPanelUser, PortfolioController.getPortfolios);
 
-router.get('/:portfolioId', authMiddleware, PortfolioController.getPortfolio);
+router.get('/:portfolioId', authenticate, isPanelUser, PortfolioController.getPortfolio);
 
-router.patch('/:portfolioId/status', authMiddleware, PortfolioController.updateStatus);
+router.patch('/:portfolioId/status', authenticate, isPanelUser, PortfolioController.updateStatus);
 
-router.patch('/:portfolioId/visibility', authMiddleware, PortfolioController.updateVisibility);
+router.patch('/:portfolioId/visibility', authenticate, isPanelUser, PortfolioController.updateVisibility);
 
-router.delete('/:portfolioId', authMiddleware, PortfolioController.deletePortfolio);
+router.delete('/:portfolioId', authenticate, isPanelUser, PortfolioController.deletePortfolio);
 
 export default router;
