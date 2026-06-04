@@ -1,182 +1,134 @@
-/**
- * Category Repository
- * Handles database operations for categories
- */
-
 import models from '#models/index.js';
-import { Op } from 'sequelize';
 
 const { Category } = models;
 
 class CategoryRepository {
-  /**
-   * Create new category
-   * @param {Object} categoryData - Category data
-   * @returns {Promise<Object>}
-   */
-  async create(categoryData) {
-    return await Category.create(categoryData);
-  }
+  async findAll(options = {}) {
+    const { page = 1, limit = 50, isActive, groupSlug } = options;
+    const offset = (page - 1) * limit;
 
-  /**
-   * Get all categories with optional filters
-   * @param {Object} filters - Filter options
-   * @returns {Promise<Array>}
-   */
-  async getAll(filters = {}) {
     const where = {};
+    if (isActive !== undefined) where.isActive = isActive;
+    if (groupSlug) where.groupSlug = groupSlug;
 
-    if (filters.isActive !== undefined) {
-      where.isActive = filters.isActive;
-    }
-
-    if (filters.isFeatured !== undefined) {
-      where.isFeatured = filters.isFeatured;
-    }
-
-    if (filters.search) {
-      where[Op.or] = [
-        { name: { [Op.iLike]: `%${filters.search}%` } },
-        { slug: { [Op.iLike]: `%${filters.search}%` } }
-      ];
-    }
-
-    return await Category.findAll({
+    const { rows: categories, count: total } = await Category.findAndCountAll({
       where,
       order: [
+        ['isFeatured', 'DESC'],
+        ['displayOrder', 'ASC'],
+        ['name', 'ASC']
+      ],
+      limit,
+      offset
+    });
+
+    return {
+      categories,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  }
+
+  async findActive() {
+    return await Category.findAll({
+      where: { isActive: true },
+      attributes: [
+        'id',
+        'name',
+        'slug',
+        'groupSlug',
+        'description',
+        'icon',
+        'bannerImage',
+        'storageType',
+        'colorCode',
+        'subtypes',
+        'displayOrder',
+        'isFeatured',
+        'metaTitle',
+        'metaDescription'
+      ],
+      order: [
+        ['isFeatured', 'DESC'],
         ['displayOrder', 'ASC'],
         ['name', 'ASC']
       ]
     });
   }
 
-  /**
-   * Get category by ID
-   * @param {number} id - Category ID
-   * @returns {Promise<Object|null>}
-   */
-  async getById(id) {
-    return await Category.findByPk(id);
+  async findById(categoryId) {
+    return await Category.findByPk(categoryId);
   }
 
-  /**
-   * Get category by slug
-   * @param {string} slug - Category slug
-   * @returns {Promise<Object|null>}
-   */
-  async getBySlug(slug) {
+  async findBySlug(slug) {
     return await Category.findOne({
       where: { slug }
     });
   }
 
-  /**
-   * Update category
-   * @param {number} id - Category ID
-   * @param {Object} updateData - Update data
-   * @param {Object} options - Additional options (userId, userName for audit)
-   * @returns {Promise<Object|null>}
-   */
-  async update(id, updateData, options = {}) {
-    const category = await Category.findByPk(id);
+  async create(categoryData, userId) {
+    return await Category.create(categoryData, { userId });
+  }
+
+  async update(categoryId, updateData, userId) {
+    const category = await Category.findByPk(categoryId);
     if (!category) return null;
 
-    // Handle updated_by audit trail
-    if (options.userId && options.userName) {
-      const currentUpdates = category.updatedBy || [];
-      updateData.updatedBy = [
-        ...currentUpdates,
-        {
-          userId: options.userId,
-          userName: options.userName,
-          timestamp: new Date().toISOString()
-        }
-      ];
-    }
-
-    await category.update(updateData);
-    return category;
+    await category.update(updateData, { userId });
+    return await this.findById(categoryId);
   }
 
-  /**
-   * Update category status (active/inactive)
-   * @param {number} id - Category ID
-   * @param {boolean} isActive - Active status
-   * @param {Object} options - Additional options
-   * @returns {Promise<Object|null>}
-   */
-  async updateStatus(id, isActive, options = {}) {
-    return await this.update(id, { isActive }, options);
-  }
-
-  /**
-   * Update category featured status
-   * @param {number} id - Category ID
-   * @param {boolean} isFeatured - Featured status
-   * @param {Object} options - Additional options
-   * @returns {Promise<Object|null>}
-   */
-  async updateFeaturedStatus(id, isFeatured, options = {}) {
-    return await this.update(id, { isFeatured }, options);
-  }
-
-  /**
-   * Soft delete category
-   * @param {number} id - Category ID
-   * @param {number} deletedBy - User ID who deleted
-   * @returns {Promise<boolean>}
-   */
-  async delete(id, deletedBy) {
-    const category = await Category.findByPk(id);
+  async delete(categoryId, userId) {
+    const category = await Category.findByPk(categoryId);
     if (!category) return false;
 
-    await category.update({ deletedBy });
-    await category.destroy();
+    await category.destroy({ userId });
     return true;
   }
 
-  /**
-   * Check if slug exists
-   * @param {string} slug - Category slug
-   * @param {number} excludeId - Exclude this ID from check (for updates)
-   * @returns {Promise<boolean>}
-   */
-  async slugExists(slug, excludeId = null) {
-    const where = { slug };
-    if (excludeId) {
-      where.id = { [Op.ne]: excludeId };
-    }
+  async toggleStatus(categoryId, isActive, userId) {
+    const category = await Category.findByPk(categoryId);
+    if (!category) return null;
 
-    const count = await Category.count({ where });
-    return count > 0;
+    await category.update({ isActive }, { userId });
+    return await this.findById(categoryId);
   }
 
-  /**
-   * Check if name exists
-   * @param {string} name - Category name
-   * @param {number} excludeId - Exclude this ID from check (for updates)
-   * @returns {Promise<boolean>}
-   */
-  async nameExists(name, excludeId = null) {
+  async toggleFeatured(categoryId, isFeatured, userId) {
+    const category = await Category.findByPk(categoryId);
+    if (!category) return null;
+
+    await category.update({ isFeatured }, { userId });
+    return await this.findById(categoryId);
+  }
+
+  async updateDisplayOrder(categoryId, displayOrder, userId) {
+    const category = await Category.findByPk(categoryId);
+    if (!category) return null;
+
+    await category.update({ displayOrder }, { userId });
+    return await this.findById(categoryId);
+  }
+
+  async checkNameExists(name, excludeId = null) {
     const where = { name };
-    if (excludeId) {
-      where.id = { [Op.ne]: excludeId };
-    }
+    if (excludeId) where.id = { [models.Sequelize.Op.ne]: excludeId };
 
-    const count = await Category.count({ where });
-    return count > 0;
+    const category = await Category.findOne({ where });
+    return !!category;
   }
-  /**
-   * Get category by ID with basic info
-   * @param {number} categoryId 
-   * @returns {Promise<Object|null>} Category info
-   */
-  async getBasicInfo(categoryId) {
-    return await Category.findByPk(categoryId, {
-      attributes: ['id', 'name', 'slug']
-    });
+
+  async checkSlugExists(slug, excludeId = null) {
+    const where = { slug };
+    if (excludeId) where.id = { [models.Sequelize.Op.ne]: excludeId };
+
+    const category = await Category.findOne({ where });
+    return !!category;
   }
 }
 
-// Export singleton instance
 export default new CategoryRepository();

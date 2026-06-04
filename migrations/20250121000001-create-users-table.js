@@ -13,7 +13,7 @@ export async function up(queryInterface, Sequelize) {
     },
     mobile: {
       type: Sequelize.STRING(15),
-      allowNull: true,
+      allowNull: false,
       unique: true
     },
     full_name: {
@@ -31,18 +31,89 @@ export async function up(queryInterface, Sequelize) {
     },
     role_id: {
       type: Sequelize.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: 'roles',
         key: 'id'
       },
       onUpdate: 'CASCADE',
+      onDelete: 'RESTRICT'
+    },
+    dob: {
+      type: Sequelize.DATEONLY,
+      allowNull: true
+    },
+    gender: {
+      type: Sequelize.STRING(10),
+      allowNull: true
+    },
+    about: {
+      type: Sequelize.TEXT,
+      allowNull: true
+    },
+    profile_photo: {
+      type: Sequelize.TEXT,
+      allowNull: true
+    },
+    avatar_photo: {
+      type: Sequelize.TEXT,
+      allowNull: true
+    },
+    photos_storage_type: {
+      type: Sequelize.ENUM(
+        'local',
+        'cloudinary',
+        'aws_s3',
+        'cloudflare_r2',
+        'gcs',
+        'azure_blob',
+        'digital_ocean',
+        'backblaze_b2',
+        'external',
+        'other'
+      ),
+      allowNull: true
+    },
+    address: {
+      type: Sequelize.TEXT,
+      allowNull: true
+    },
+    city_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'cities',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
       onDelete: 'SET NULL'
     },
-    status: {
-      type: Sequelize.ENUM('active', 'blocked', 'suspended', 'deleted'),
+    city_name: {
+      type: Sequelize.STRING(100),
+      allowNull: true
+    },
+    state_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'states',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    },
+    state_name: {
+      type: Sequelize.STRING(255),
+      allowNull: true
+    },
+    country_name: {
+      type: Sequelize.STRING(50),
       allowNull: false,
-      defaultValue: 'active'
+      defaultValue: 'India'
+    },
+    pincode: {
+      type: Sequelize.STRING(10),
+      allowNull: true
     },
     is_active: {
       type: Sequelize.BOOLEAN,
@@ -96,11 +167,6 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: 1
     },
-    is_auto_approve_enabled: {
-      type: Sequelize.BOOLEAN,
-      allowNull: false,
-      defaultValue: false
-    },
     total_portfolios: {
       type: Sequelize.INTEGER,
       allowNull: false,
@@ -112,11 +178,6 @@ export async function up(queryInterface, Sequelize) {
       defaultValue: 0
     },
     unread_notification_count: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      defaultValue: 0
-    },
-    new_favorite_count: {
       type: Sequelize.INTEGER,
       allowNull: false,
       defaultValue: 0
@@ -140,6 +201,24 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.INTEGER,
       allowNull: false,
       defaultValue: 0
+    },
+    is_verified: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    verified_at: {
+      type: Sequelize.DATE,
+      allowNull: true
+    },
+    verification_badge_type: {
+      type: Sequelize.ENUM('basic', 'premium', 'elite'),
+      allowNull: true
+    },
+    trust_score: {
+      type: Sequelize.DECIMAL(3, 2),
+      allowNull: false,
+      defaultValue: 0.00
     },
     created_by: {
       type: Sequelize.BIGINT,
@@ -189,19 +268,20 @@ export async function up(queryInterface, Sequelize) {
     name: 'idx_users_role_id'
   });
 
-  await queryInterface.addIndex('users', ['status'], {
-    name: 'idx_users_status'
+  await queryInterface.addIndex('users', ['city_id'], {
+    name: 'idx_users_city_id'
+  });
+
+  await queryInterface.addIndex('users', ['state_id'], {
+    name: 'idx_users_state_id'
+  });
+
+  await queryInterface.addIndex('users', ['is_active'], {
+    name: 'idx_users_is_active'
   });
 
   await queryInterface.addIndex('users', ['deleted_at'], {
     name: 'idx_users_deleted_at'
-  });
-
-  await queryInterface.addIndex('users', ['is_auto_approve_enabled'], {
-    name: 'idx_users_auto_approve',
-    where: {
-      is_auto_approve_enabled: true
-    }
   });
 
   await queryInterface.addIndex('users', ['referral_code'], {
@@ -210,6 +290,18 @@ export async function up(queryInterface, Sequelize) {
 
   await queryInterface.addIndex('users', ['referred_by'], {
     name: 'idx_users_referred_by'
+  });
+
+  await queryInterface.addIndex('users', ['is_verified'], {
+    name: 'idx_users_is_verified'
+  });
+
+  await queryInterface.addIndex('users', ['verification_badge_type'], {
+    name: 'idx_users_verification_badge_type'
+  });
+
+  await queryInterface.addIndex('users', ['trust_score'], {
+    name: 'idx_users_trust_score'
   });
 }
 

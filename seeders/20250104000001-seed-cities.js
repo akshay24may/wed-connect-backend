@@ -22,11 +22,23 @@ export async function up(queryInterface) {
   });
 
   const cities = districtsData.districts.map((district, index) => {
-    const stateInfo = stateMap[district.stateCode];
+    let searchCode = district.stateCode;
+    if (searchCode === 'OD') searchCode = 'OR';
+    if (searchCode === 'DD') searchCode = 'DH';
+    const stateInfo = stateMap[searchCode];
+
     const citySlug = district.district
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
+
+    let cityTier = 'tier_3';
+    if (district.tier) {
+      cityTier = district.tier.toLowerCase().replace(/\s+/g, '_');
+      if (!['tier_1', 'tier_2', 'tier_3'].includes(cityTier)) {
+        cityTier = 'tier_3';
+      }
+    }
 
     return {
       state_id: stateInfo ? stateInfo.id : null,
@@ -39,9 +51,9 @@ export async function up(queryInterface) {
       population: district.population,
       area: district.area,
       density: district.density,
-      latitude: null,
-      longitude: null,
-      city_tier: 'tier_3',
+      latitude: district.lat !== undefined ? district.lat : null,
+      longitude: district.lng !== undefined ? district.lng : null,
+      city_tier: cityTier,
       is_active: true,
       display_order: index + 1,
       is_popular: false,

@@ -1,205 +1,195 @@
 import subscriptionService from '#services/subscriptionService.js';
-import {
-  successResponse,
-  createResponse,
-  errorResponse,
-  notFoundResponse,
-  paginatedResponse
-} from '#utils/responseFormatter.js';
+import { successResponse, errorResponse } from '#utils/responseFormatter.js';
 
 class SubscriptionController {
-  static async getAllSubscriptions(req, res) {
+  static async getPlans(req, res) {
+    try {
+      const filters = {
+        categoryId: req.query.categoryId,
+        categorySlug: req.query.categorySlug,
+        cityTier: req.query.cityTier,
+        isActive: req.query.isActive,
+        isPublic: req.query.isPublic,
+        isDefault: req.query.isDefault,
+        page: req.query.page || 1,
+        limit: req.query.limit || 20
+      };
+
+      const result = await subscriptionService.getPlans(filters);
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 400);
+      }
+
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      console.error('Get plans (panel) error:', error);
+      return errorResponse(res, 'Failed to fetch subscription plans', 500);
+    }
+  }
+
+  static async getPlanById(req, res) {
+    try {
+      const { id } = req.params;
+
+      const result = await subscriptionService.getPlanById(id);
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 404);
+      }
+
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      console.error('Get plan by ID (panel) error:', error);
+      return errorResponse(res, 'Failed to fetch subscription plan', 500);
+    }
+  }
+
+  static async createPlan(req, res) {
+    try {
+      const adminUserId = req.user.userId;
+      const planData = req.body;
+
+      const result = await subscriptionService.createPlan(planData, adminUserId);
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 400);
+      }
+
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      console.error('Create plan error:', error);
+      return errorResponse(res, 'Failed to create subscription plan', 500);
+    }
+  }
+
+  static async updatePlan(req, res) {
+    try {
+      const adminUserId = req.user.userId;
+      const { id } = req.params;
+      const planData = req.body;
+
+      const result = await subscriptionService.updatePlan(id, planData, adminUserId);
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 400);
+      }
+
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      console.error('Update plan error:', error);
+      return errorResponse(res, 'Failed to update subscription plan', 500);
+    }
+  }
+
+  static async deletePlan(req, res) {
+    try {
+      const adminUserId = req.user.userId;
+      const { id } = req.params;
+
+      const result = await subscriptionService.deletePlan(id, adminUserId);
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 400);
+      }
+
+      return successResponse(res, null, result.message);
+    } catch (error) {
+      console.error('Delete plan error:', error);
+      return errorResponse(res, 'Failed to delete subscription plan', 500);
+    }
+  }
+
+  static async updatePlanStatus(req, res) {
+    try {
+      const adminUserId = req.user.userId;
+      const { id } = req.params;
+      const { isActive } = req.body;
+
+      if (isActive === undefined) {
+        return errorResponse(res, 'isActive field is required', 400);
+      }
+
+      const result = await subscriptionService.updatePlanStatus(id, isActive, adminUserId);
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 400);
+      }
+
+      return successResponse(res, null, result.message);
+    } catch (error) {
+      console.error('Update plan status error:', error);
+      return errorResponse(res, 'Failed to update plan status', 500);
+    }
+  }
+
+  static async getAllUserSubscriptions(req, res) {
     try {
       const filters = {
         status: req.query.status,
-        userId: req.query.userId ? parseInt(req.query.userId) : undefined,
-        planId: req.query.planId ? parseInt(req.query.planId) : undefined,
-        dateFrom: req.query.dateFrom,
-        dateTo: req.query.dateTo
+        categoryId: req.query.categoryId,
+        userId: req.query.userId,
+        page: req.query.page || 1,
+        limit: req.query.limit || 20
       };
 
-      const pagination = {
-        page: parseInt(req.query.page) || 1,
-        limit: parseInt(req.query.limit) || 10
-      };
+      const result = await subscriptionService.getAllUserSubscriptions(filters);
 
-      const result = await subscriptionService.getAllSubscriptions(filters, pagination);
-
-      return paginatedResponse(res, result.data, result.pagination, result.message);
-    } catch (error) {
-      return errorResponse(res, error.message, 500);
-    }
-  }
-
-  static async getSubscriptionById(req, res) {
-    try {
-      const subscriptionId = parseInt(req.params.id);
-
-      if (isNaN(subscriptionId)) {
-        return errorResponse(res, 'Invalid subscription ID', 400);
+      if (!result.success) {
+        return errorResponse(res, result.message, 400);
       }
-
-      const result = await subscriptionService.getSubscriptionById(subscriptionId);
 
       return successResponse(res, result.data, result.message);
     } catch (error) {
-      if (error.message.includes('not found')) {
-        return notFoundResponse(res, error.message);
-      }
-      return errorResponse(res, error.message, 500);
+      console.error('Get all user subscriptions error:', error);
+      return errorResponse(res, 'Failed to fetch user subscriptions', 500);
     }
   }
 
-  static async createSubscription(req, res) {
+  static async getUserSubscriptionById(req, res) {
     try {
-      const adminUserId = req.user.userId;
-      const subscriptionData = req.body;
+      const { id } = req.params;
 
-      const result = await subscriptionService.createSubscriptionManually(
-        subscriptionData,
-        adminUserId
-      );
+      const result = await subscriptionService.getUserSubscription(null, id);
 
-      return createResponse(res, result.data, result.message);
-    } catch (error) {
-      if (error.message.includes('not found')) {
-        return notFoundResponse(res, error.message);
+      if (!result.success) {
+        return errorResponse(res, result.message, 404);
       }
-      return errorResponse(res, error.message, 400);
-    }
-  }
-
-  static async updateSubscription(req, res) {
-    try {
-      const subscriptionId = parseInt(req.params.id);
-      const adminUserId = req.user.userId;
-
-      if (isNaN(subscriptionId)) {
-        return errorResponse(res, 'Invalid subscription ID', 400);
-      }
-
-      const result = await subscriptionService.updateSubscriptionAdmin(
-        subscriptionId,
-        req.body,
-        adminUserId
-      );
 
       return successResponse(res, result.data, result.message);
     } catch (error) {
-      if (error.message.includes('not found')) {
-        return notFoundResponse(res, error.message);
-      }
-      return errorResponse(res, error.message, 400);
-    }
-  }
-
-  static async deleteSubscription(req, res) {
-    try {
-      const subscriptionId = parseInt(req.params.id);
-      const adminUserId = req.user.userId;
-
-      if (isNaN(subscriptionId)) {
-        return errorResponse(res, 'Invalid subscription ID', 400);
-      }
-
-      const result = await subscriptionService.deleteSubscriptionAdmin(
-        subscriptionId,
-        adminUserId
-      );
-
-      return successResponse(res, result.data, result.message);
-    } catch (error) {
-      if (error.message.includes('not found')) {
-        return notFoundResponse(res, error.message);
-      }
-      return errorResponse(res, error.message, 400);
+      console.error('Get user subscription by ID error:', error);
+      return errorResponse(res, 'Failed to fetch user subscription', 500);
     }
   }
 
   static async updateSubscriptionStatus(req, res) {
     try {
-      const subscriptionId = parseInt(req.params.id);
       const adminUserId = req.user.userId;
+      const { id } = req.params;
       const { status } = req.body;
-
-      if (isNaN(subscriptionId)) {
-        return errorResponse(res, 'Invalid subscription ID', 400);
-      }
 
       if (!status) {
         return errorResponse(res, 'Status is required', 400);
       }
 
-      const result = await subscriptionService.updateSubscriptionStatus(
-        subscriptionId,
-        status,
-        adminUserId
-      );
-
-      return successResponse(res, result.data, result.message);
-    } catch (error) {
-      if (error.message.includes('not found')) {
-        return notFoundResponse(res, error.message);
+      const validStatuses = ['pending', 'active', 'expired', 'cancelled', 'suspended'];
+      if (!validStatuses.includes(status)) {
+        return errorResponse(res, `Invalid status. Must be one of: ${validStatuses.join(', ')}`, 400);
       }
-      return errorResponse(res, error.message, 400);
+
+      const result = await subscriptionService.updateSubscriptionStatus(id, status, adminUserId);
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 400);
+      }
+
+      return successResponse(res, null, result.message);
+    } catch (error) {
+      console.error('Update subscription status error:', error);
+      return errorResponse(res, 'Failed to update subscription status', 500);
     }
   }
-
-  static async extendSubscription(req, res) {
-    try {
-      const subscriptionId = parseInt(req.params.id);
-      const adminUserId = req.user.userId;
-      const { extensionDays } = req.body;
-
-      if (isNaN(subscriptionId)) {
-        return errorResponse(res, 'Invalid subscription ID', 400);
-      }
-
-      if (!extensionDays || isNaN(extensionDays)) {
-        return errorResponse(res, 'Extension days is required and must be a number', 400);
-      }
-
-      const result = await subscriptionService.extendSubscription(
-        subscriptionId,
-        parseInt(extensionDays),
-        adminUserId
-      );
-
-      return successResponse(res, result.data, result.message);
-    } catch (error) {
-      if (error.message.includes('not found')) {
-        return notFoundResponse(res, error.message);
-      }
-      return errorResponse(res, error.message, 400);
-    }
-  }
-
-  static async getSubscriptionsByCategory(req, res) {
-    try {
-      const categoryId = parseInt(req.params.categoryId);
-
-      if (isNaN(categoryId)) {
-        return errorResponse(res, 'Invalid category ID', 400);
-      }
-
-      const filters = {
-        ...req.query,
-        categoryId
-      };
-
-      const pagination = {
-        page: parseInt(req.query.page) || 1,
-        limit: parseInt(req.query.limit) || 10
-      };
-
-      const result = await subscriptionService.getSubscriptionsByCategory(filters, pagination);
-
-      return paginatedResponse(res, result.data, result.pagination, result.message);
-    } catch (error) {
-      return errorResponse(res, error.message, 500);
-    }
-  }
-
 }
 
 export default SubscriptionController;

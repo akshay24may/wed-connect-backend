@@ -1,353 +1,310 @@
-/**
- * Category Service
- * Business logic for category management
- */
-
 import categoryRepository from '#repositories/categoryRepository.js';
-import imageService from '#services/imageService.js';
-import { getFullUrl, getRelativePath } from '#utils/storageHelper.js';
-import { customSlugify } from '#utils/customSlugify.js';
-import { UPLOAD_CONFIG } from '#config/uploadConfig.js';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '#utils/constants/messages.js';
+import { generateUniqueSlug } from '#utils/customSlugify.js';
 
 class CategoryService {
-  /**
-   * Generate slug from name using customSlugify
-   * @param {string} name - Category name
-   * @returns {string}
-   */
-  _generateSlug(name) {
-    return customSlugify(name);
-  }
-
-  /**
-   * Convert category data with absolute URLs
-   * @param {Object} category - Category data from DB
-   * @returns {Object}
-   */
-  _convertToAbsoluteUrls(category) {
-    if (!category) return null;
-
-    const categoryData = category.toJSON ? category.toJSON() : category;
-
-    return {
-      ...categoryData,
-      icon: getFullUrl(categoryData.icon),
-      imageUrl: getFullUrl(categoryData.imageUrl)
-    };
-  }
-
-  /**
-   * Convert multiple categories with absolute URLs
-   * @param {Array} categories - Array of categories
-   * @returns {Array}
-   */
-  _convertMultipleToAbsoluteUrls(categories) {
-    return categories.map(category => this._convertToAbsoluteUrls(category));
-  }
-
-  /**
-   * Create new category
-   * @param {Object} categoryData - Category data
-   * @param {Object} files - Uploaded files (icon, image)
-   * @param {number} userId - User ID creating the category
-   * @param {string} userName - User name creating the category
-   * @returns {Promise<Object>}
-   */
-  async create(categoryData, files = {}, userId, userName) {
+  async getCategories(options = {}) {
     try {
-      // Validate required fields
-      if (!categoryData.name || categoryData.name.length < 2) {
-        throw new Error('Category name must be at least 2 characters');
+      const { page = 1, limit = 50, isActive, groupSlug } = options;
+
+      const result = await categoryRepository.findAll({ page, limit, isActive, groupSlug });
+
+      return {
+        success: true,
+        message: SUCCESS_MESSAGES.CATEGORIES_RETRIEVED,
+        data: result
+      };
+    } catch (error) {
+      console.error('Get categories error:', error);
+      return {
+        success: false,
+        message: ERROR_MESSAGES.CATEGORIES_FETCH_FAILED
+      };
+    }
+  }
+
+  async getActiveCategories() {
+    try {
+      const categories = await categoryRepository.findActive();
+
+      return {
+        success: true,
+        message: SUCCESS_MESSAGES.CATEGORIES_RETRIEVED,
+        data: { categories }
+      };
+    } catch (error) {
+      console.error('Get active categories error:', error);
+      return {
+        success: false,
+        message: ERROR_MESSAGES.CATEGORIES_FETCH_FAILED
+      };
+    }
+  }
+
+  async getCategory(categoryId) {
+    try {
+      const category = await categoryRepository.findById(categoryId);
+
+      if (!category) {
+        return {
+          success: false,
+          message: ERROR_MESSAGES.CATEGORY_NOT_FOUND
+        };
       }
 
-      // Generate slug if not provided
-      if (!categoryData.slug) {
-        categoryData.slug = this._generateSlug(categoryData.name);
-      } else {
-        // Slugify provided slug
-        categoryData.slug = customSlugify(categoryData.slug);
+      return {
+        success: true,
+        message: SUCCESS_MESSAGES.CATEGORY_RETRIEVED,
+        data: { category }
+      };
+    } catch (error) {
+      console.error('Get category error:', error);
+      return {
+        success: false,
+        message: ERROR_MESSAGES.CATEGORY_FETCH_FAILED
+      };
+    }
+  }
+
+  async createCategory(userId, categoryData) {
+    try {
+      if (!categoryData.name) {
+        return {
+          success: false,
+          message: ERROR_MESSAGES.CATEGORY_NAME_REQUIRED
+        };
       }
 
-      // Check if slug already exists
-      const slugExists = await categoryRepository.slugExists(categoryData.slug);
-      if (slugExists) {
-        throw new Error('Category slug already exists');
+      if (categoryData.name.length < 2) {
+        return {
+          success: false,
+          message: ERROR_MESSAGES.CATEGORY_NAME_TOO_SHORT
+        };
       }
 
-      // Check if name already exists
-      const nameExists = await categoryRepository.nameExists(categoryData.name);
+      const nameExists = await categoryRepository.checkNameExists(categoryData.name);
       if (nameExists) {
-        throw new Error('Category name already exists');
+        return {
+          success: false,
+          message: ERROR_MESSAGES.CATEGORY_NAME_EXISTS
+        };
       }
 
-      // Handle icon upload
-      if (files.icon) {
-        const relativePath = getRelativePath(files.icon.path);
-        
-        // Process icon
-        await imageService.processImage(files.icon.path, UPLOAD_CONFIG.CATEGORY_IMAGE);
-        
-        categoryData.icon = relativePath;
+      const slug = categoryData.slug || generateUniqueSlug(categoryData.name);
+
+      const slugExists = await categoryRepository.checkSlugExists(slug);
+      if (slugExists) {
+        return {
+          success: false,
+          message: ERROR_MESSAGES.CATEGORY_SLUG_EXISTS
+        };
       }
 
-      // Handle image upload
-      if (files.image) {
-        const relativePath = getRelativePath(files.image.path);
-        
-        // Process image
-        await imageService.processImage(files.image.path, UPLOAD_CONFIG.CATEGORY_IMAGE);
-        
-        categoryData.imageUrl = relativePath;
-      }
+      const data = {
+        name: categoryData.name,
+        slug,
+        groupSlug: categoryData.groupSlug,
+        description: categoryData.description,
+        colorCode: categoryData.colorCode,
+        subtypes: categoryData.subtypes || [],
+        displayOrder: categoryData.displayOrder || 0,
+        isFeatured: categoryData.isFeatured !== undefined ? categoryData.isFeatured : true,
+        isActive: categoryData.isActive !== undefined ? categoryData.isActive : true,
+        metaTitle: categoryData.metaTitle,
+        metaDescription: categoryData.metaDescription,
+        metaKeywords: categoryData.metaKeywords
+      };
 
-      // Set audit fields
-      categoryData.createdBy = userId;
-
-      // Create category
-      const category = await categoryRepository.create(categoryData);
+      const category = await categoryRepository.create(data, userId);
 
       return {
         success: true,
         message: SUCCESS_MESSAGES.CATEGORY_CREATED,
-        data: this._convertToAbsoluteUrls(category)
+        data: { category }
       };
     } catch (error) {
-      // Clean up uploaded files if category creation fails
-      if (files.icon) {
-        await imageService.deleteImage(getRelativePath(files.icon.path));
-      }
-      if (files.image) {
-        await imageService.deleteImage(getRelativePath(files.image.path));
-      }
-
-      throw error;
+      console.error('Create category error:', error);
+      return {
+        success: false,
+        message: ERROR_MESSAGES.CATEGORY_CREATE_FAILED
+      };
     }
   }
 
-  /**
-   * Get all categories
-   * @param {Object} filters - Filter options
-   * @returns {Promise<Object>}
-   */
-  async getAll(filters = {}) {
-    const categories = await categoryRepository.getAll(filters);
-
-    return {
-      success: true,
-      message: SUCCESS_MESSAGES.CATEGORIES_FETCHED,
-      data: this._convertMultipleToAbsoluteUrls(categories)
-    };
-  }
-
-  /**
-   * Get category by ID
-   * @param {number} id - Category ID
-   * @returns {Promise<Object>}
-   */
-  async getById(id) {
-    const category = await categoryRepository.getById(id);
-
-    if (!category) {
-      throw new Error(ERROR_MESSAGES.CATEGORY_NOT_FOUND);
-    }
-
-    return {
-      success: true,
-      message: SUCCESS_MESSAGES.CATEGORY_FETCHED,
-      data: this._convertToAbsoluteUrls(category)
-    };
-  }
-
-  /**
-   * Get category by slug
-   * @param {string} slug - Category slug
-   * @returns {Promise<Object>}
-   */
-  async getBySlug(slug) {
-    const category = await categoryRepository.getBySlug(slug);
-
-    if (!category) {
-      throw new Error(ERROR_MESSAGES.CATEGORY_NOT_FOUND);
-    }
-
-    return {
-      success: true,
-      message: SUCCESS_MESSAGES.CATEGORY_FETCHED,
-      data: this._convertToAbsoluteUrls(category)
-    };
-  }
-
-  /**
-   * Update category
-   * @param {number} id - Category ID
-   * @param {Object} updateData - Update data
-   * @param {Object} files - Uploaded files (icon, image)
-   * @param {number} userId - User ID updating the category
-   * @param {string} userName - User name updating the category
-   * @returns {Promise<Object>}
-   */
-  async update(id, updateData, files = {}, userId, userName) {
+  async updateCategory(categoryId, userId, categoryData) {
     try {
-      const category = await categoryRepository.getById(id);
+      const category = await categoryRepository.findById(categoryId);
 
       if (!category) {
-        throw new Error(ERROR_MESSAGES.CATEGORY_NOT_FOUND);
+        return {
+          success: false,
+          message: ERROR_MESSAGES.CATEGORY_NOT_FOUND
+        };
       }
 
-      // Validate name if provided
-      if (updateData.name && updateData.name.length < 2) {
-        throw new Error('Category name must be at least 2 characters');
-      }
+      if (categoryData.name) {
+        if (categoryData.name.length < 2) {
+          return {
+            success: false,
+            message: ERROR_MESSAGES.CATEGORY_NAME_TOO_SHORT
+          };
+        }
 
-      // Check if name already exists (excluding current category)
-      if (updateData.name) {
-        const nameExists = await categoryRepository.nameExists(updateData.name, id);
+        const nameExists = await categoryRepository.checkNameExists(categoryData.name, categoryId);
         if (nameExists) {
-          throw new Error('Category name already exists');
+          return {
+            success: false,
+            message: ERROR_MESSAGES.CATEGORY_NAME_EXISTS
+          };
         }
       }
 
-      // Slugify slug if provided
-      if (updateData.slug) {
-        updateData.slug = customSlugify(updateData.slug);
-        
-        // Check if slug already exists (excluding current category)
-        const slugExists = await categoryRepository.slugExists(updateData.slug, id);
+      if (categoryData.slug) {
+        const slugExists = await categoryRepository.checkSlugExists(categoryData.slug, categoryId);
         if (slugExists) {
-          throw new Error('Category slug already exists');
+          return {
+            success: false,
+            message: ERROR_MESSAGES.CATEGORY_SLUG_EXISTS
+          };
         }
       }
 
-      // Handle icon upload
-      if (files.icon) {
-        // Delete old icon if exists
-        if (category.icon) {
-          await imageService.deleteImage(category.icon);
-        }
+      const updateData = {};
+      if (categoryData.name !== undefined) updateData.name = categoryData.name;
+      if (categoryData.slug !== undefined) updateData.slug = categoryData.slug;
+      if (categoryData.groupSlug !== undefined) updateData.groupSlug = categoryData.groupSlug;
+      if (categoryData.description !== undefined) updateData.description = categoryData.description;
+      if (categoryData.colorCode !== undefined) updateData.colorCode = categoryData.colorCode;
+      if (categoryData.subtypes !== undefined) updateData.subtypes = categoryData.subtypes;
+      if (categoryData.displayOrder !== undefined) updateData.displayOrder = categoryData.displayOrder;
+      if (categoryData.isFeatured !== undefined) updateData.isFeatured = categoryData.isFeatured;
+      if (categoryData.isActive !== undefined) updateData.isActive = categoryData.isActive;
+      if (categoryData.metaTitle !== undefined) updateData.metaTitle = categoryData.metaTitle;
+      if (categoryData.metaDescription !== undefined) updateData.metaDescription = categoryData.metaDescription;
+      if (categoryData.metaKeywords !== undefined) updateData.metaKeywords = categoryData.metaKeywords;
 
-        const relativePath = getRelativePath(files.icon.path);
-        
-        // Process new icon
-        await imageService.processImage(files.icon.path, UPLOAD_CONFIG.CATEGORY_IMAGE);
-        
-        updateData.icon = relativePath;
-      }
-
-      // Handle image upload
-      if (files.image) {
-        // Delete old image if exists
-        if (category.imageUrl) {
-          await imageService.deleteImage(category.imageUrl);
-        }
-
-        const relativePath = getRelativePath(files.image.path);
-        
-        // Process new image
-        await imageService.processImage(files.image.path, UPLOAD_CONFIG.CATEGORY_IMAGE);
-        
-        updateData.imageUrl = relativePath;
-      }
-
-      // Update category
-      const updatedCategory = await categoryRepository.update(id, updateData, { userId, userName });
+      const updatedCategory = await categoryRepository.update(categoryId, updateData, userId);
 
       return {
         success: true,
         message: SUCCESS_MESSAGES.CATEGORY_UPDATED,
-        data: this._convertToAbsoluteUrls(updatedCategory)
+        data: { category: updatedCategory }
       };
     } catch (error) {
-      // Clean up uploaded files if update fails
-      if (files.icon) {
-        await imageService.deleteImage(getRelativePath(files.icon.path));
+      console.error('Update category error:', error);
+      return {
+        success: false,
+        message: ERROR_MESSAGES.CATEGORY_UPDATE_FAILED
+      };
+    }
+  }
+
+  async deleteCategory(categoryId, userId) {
+    try {
+      const category = await categoryRepository.findById(categoryId);
+
+      if (!category) {
+        return {
+          success: false,
+          message: ERROR_MESSAGES.CATEGORY_NOT_FOUND
+        };
       }
-      if (files.image) {
-        await imageService.deleteImage(getRelativePath(files.image.path));
+
+      await categoryRepository.delete(categoryId, userId);
+
+      return {
+        success: true,
+        message: SUCCESS_MESSAGES.CATEGORY_DELETED
+      };
+    } catch (error) {
+      console.error('Delete category error:', error);
+      return {
+        success: false,
+        message: ERROR_MESSAGES.CATEGORY_DELETE_FAILED
+      };
+    }
+  }
+
+  async toggleStatus(categoryId, isActive, userId) {
+    try {
+      const category = await categoryRepository.findById(categoryId);
+
+      if (!category) {
+        return {
+          success: false,
+          message: ERROR_MESSAGES.CATEGORY_NOT_FOUND
+        };
       }
 
-      throw error;
+      const updatedCategory = await categoryRepository.toggleStatus(categoryId, isActive, userId);
+
+      return {
+        success: true,
+        message: isActive ? SUCCESS_MESSAGES.CATEGORY_ACTIVATED : SUCCESS_MESSAGES.CATEGORY_DEACTIVATED,
+        data: { category: updatedCategory }
+      };
+    } catch (error) {
+      console.error('Toggle category status error:', error);
+      return {
+        success: false,
+        message: ERROR_MESSAGES.CATEGORY_STATUS_UPDATE_FAILED
+      };
     }
   }
 
-  /**
-   * Update category status
-   * @param {number} id - Category ID
-   * @param {boolean} isActive - Active status
-   * @param {number} userId - User ID
-   * @param {string} userName - User name
-   * @returns {Promise<Object>}
-   */
-  async updateStatus(id, isActive, userId, userName) {
-    const category = await categoryRepository.updateStatus(id, isActive, { userId, userName });
+  async toggleFeatured(categoryId, isFeatured, userId) {
+    try {
+      const category = await categoryRepository.findById(categoryId);
 
-    if (!category) {
-      throw new Error(ERROR_MESSAGES.CATEGORY_NOT_FOUND);
+      if (!category) {
+        return {
+          success: false,
+          message: ERROR_MESSAGES.CATEGORY_NOT_FOUND
+        };
+      }
+
+      const updatedCategory = await categoryRepository.toggleFeatured(categoryId, isFeatured, userId);
+
+      return {
+        success: true,
+        message: isFeatured ? SUCCESS_MESSAGES.CATEGORY_FEATURED : SUCCESS_MESSAGES.CATEGORY_UNFEATURED,
+        data: { category: updatedCategory }
+      };
+    } catch (error) {
+      console.error('Toggle category featured error:', error);
+      return {
+        success: false,
+        message: ERROR_MESSAGES.CATEGORY_FEATURED_UPDATE_FAILED
+      };
     }
-
-    return {
-      success: true,
-      message: SUCCESS_MESSAGES.CATEGORY_STATUS_UPDATED,
-      data: this._convertToAbsoluteUrls(category)
-    };
   }
 
-  /**
-   * Update category featured status
-   * @param {number} id - Category ID
-   * @param {boolean} isFeatured - Featured status
-   * @param {number} userId - User ID
-   * @param {string} userName - User name
-   * @returns {Promise<Object>}
-   */
-  async updateFeaturedStatus(id, isFeatured, userId, userName) {
-    const category = await categoryRepository.updateFeaturedStatus(id, isFeatured, { userId, userName });
+  async reorderCategory(categoryId, displayOrder, userId) {
+    try {
+      const category = await categoryRepository.findById(categoryId);
 
-    if (!category) {
-      throw new Error(ERROR_MESSAGES.CATEGORY_NOT_FOUND);
+      if (!category) {
+        return {
+          success: false,
+          message: ERROR_MESSAGES.CATEGORY_NOT_FOUND
+        };
+      }
+
+      const updatedCategory = await categoryRepository.updateDisplayOrder(categoryId, displayOrder, userId);
+
+      return {
+        success: true,
+        message: SUCCESS_MESSAGES.CATEGORY_REORDERED,
+        data: { category: updatedCategory }
+      };
+    } catch (error) {
+      console.error('Reorder category error:', error);
+      return {
+        success: false,
+        message: ERROR_MESSAGES.CATEGORY_REORDER_FAILED
+      };
     }
-
-    return {
-      success: true,
-      message: SUCCESS_MESSAGES.CATEGORY_FEATURED_UPDATED,
-      data: this._convertToAbsoluteUrls(category)
-    };
-  }
-
-  /**
-   * Delete category
-   * @param {number} id - Category ID
-   * @param {number} userId - User ID deleting the category
-   * @returns {Promise<Object>}
-   */
-  async delete(id, userId) {
-    const category = await categoryRepository.getById(id);
-
-    if (!category) {
-      throw new Error(ERROR_MESSAGES.CATEGORY_NOT_FOUND);
-    }
-
-    // Delete associated images
-    if (category.icon) {
-      await imageService.deleteImage(category.icon);
-    }
-    if (category.imageUrl) {
-      await imageService.deleteImage(category.imageUrl);
-    }
-
-    const deleted = await categoryRepository.delete(id, userId);
-
-    if (!deleted) {
-      throw new Error(ERROR_MESSAGES.CATEGORY_DELETE_FAILED);
-    }
-
-    return {
-      success: true,
-      message: SUCCESS_MESSAGES.CATEGORY_DELETED,
-      data: null
-    };
   }
 }
 
-// Export singleton instance
 export default new CategoryService();

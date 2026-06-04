@@ -75,10 +75,13 @@ const uploadToCloudinary = async (file, folder, options = {}) => {
 
     // Return relative path (without CLOUDINARY_FOLDER prefix)
     const relativePath = result.public_id.replace(`${CLOUDINARY_FOLDER}/`, '');
+    
+    // Add extension back to match guidelines
+    const pathWithExt = `${relativePath}.${result.format}`;
 
     return {
       url: result.secure_url,
-      publicId: relativePath, // Store relative path for storage-agnostic approach
+      publicId: pathWithExt, // Store relative path with extension
       storageType: 'cloudinary',
       width: result.width,
       height: result.height,
@@ -96,15 +99,14 @@ const uploadToCloudinary = async (file, folder, options = {}) => {
 const uploadToLocal = async (file, folder) => {
   try {
     // For local storage, file is already saved by multer
-    // Get relative path and remove extension (to match Cloudinary behavior)
+    // Get relative path (keeping the extension as per guidelines)
     const relativePath = path.relative(process.cwd(), file.path).replace(/\\/g, '/');
-    const relativePathWithoutExt = relativePath.replace(/\.[^.]+$/, ''); // Remove extension
     
     return {
       url: `${process.env.UPLOAD_URL}/${relativePath}`,
-      publicId: relativePathWithoutExt, // Store without extension
+      publicId: relativePath, // Store with extension
       storageType: 'local',
-      path: relativePathWithoutExt // Store without extension
+      path: relativePath // Store with extension
     };
   } catch (error) {
     throw new Error(`Local upload failed: ${error.message}`);
@@ -129,13 +131,16 @@ export const deleteFile = async (publicId, storageType, options = {}) => {
  */
 const deleteFromCloudinary = async (publicId, options = {}) => {
   try {
-    const result = await cloudinary.uploader.destroy(publicId, {
+    // Remove extension for Cloudinary publicId
+    const publicIdWithoutExt = publicId.replace(/\.[^.]+$/, '');
+    
+    const result = await cloudinary.uploader.destroy(publicIdWithoutExt, {
       resource_type: options.resourceType || 'image'
     });
     return result;
   } catch (error) {
     console.error('Cloudinary delete error:', error);
-    throw new Error(`Failed to delete from Cloudinary: ${error.message}`);
+    return { result: 'error', message: error.message };
   }
 };
 
@@ -157,12 +162,27 @@ const deleteFromLocal = async (filePath, mimeType) => {
     };
 
     const ext = MIME_TO_EXT[mimeType] || 'jpg';
-    const fullPath = path.join(process.cwd(), `${filePath}.${ext}`);
-    await fs.unlink(fullPath);
+    
+    // Check if filePath already has an extension
+    let fullPath;
+    if (path.extname(filePath)) {
+      fullPath = path.join(process.cwd(), filePath);
+    } else {
+      fullPath = path.join(process.cwd(), `${filePath}.${ext}`);
+    }
+
+    try {
+      await fs.unlink(fullPath);
+    } catch (unlinkErr) {
+      if (unlinkErr.code !== 'ENOENT') {
+        throw unlinkErr;
+      }
+    }
+    
     return { result: 'ok' };
   } catch (error) {
     console.error('Local delete error:', error);
-    throw new Error(`Failed to delete from local storage: ${error.message}`);
+    return { result: 'error', message: error.message };
   }
 };
 

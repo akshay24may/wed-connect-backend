@@ -5,46 +5,35 @@ import City from './City.js';
 import Role from './Role.js';
 import Permission from './Permission.js';
 import RolePermission from './RolePermission.js';
-import UserModel from './User.js';
-import UserProfileModel from './UserProfile.js';
-import UserSessionModel from './UserSession.js';
-import UserSocialAccountModel from './UserSocialAccount.js';
-import SubscriptionPlanModel from './SubscriptionPlan.js';
-import UserSubscriptionModel from './UserSubscription.js';
-import CarBrand from './CarBrand.js';
-import CarModel from './CarModel.js';
-import CarVariant from './CarVariant.js';
-import CarSpecification from './CarSpecification.js';
-import DataRequest from './DataRequest.js';
+import User from './User.js';
+import UserSession from './UserSession.js';
+// import UserSocialAccount from './UserSocialAccount.js';
+import SubscriptionPlan from './SubscriptionPlan.js';
+import UserSubscription from './UserSubscription.js';
+// import DataRequest from './DataRequest.js';
 import Category from './Category.js';
 import Portfolio from './Portfolio.js';
-import PortfolioMedia from './PortfolioMedia.js';
-import PortfolioInquiry from './PortfolioInquiry.js';
-import PortfolioOffer from './PortfolioOffer.js';
-import ModerationReport from './ModerationReport.js';
-import ChatRoom from './ChatRoom.js';
-import ChatMessage from './ChatMessage.js';
-import ListingOffer from './ListingOffer.js';
-import InvoiceModel from './Invoice.js';
-import TransactionModel from './Transaction.js';
-import UserFavorite from './UserFavorite.js';
-import UserActivityLog from './UserActivityLog.js';
-import UserLocationPreference from './UserLocationPreference.js';
-import UserNotification from './UserNotification.js';
-import UserNotificationPreference from './UserNotificationPreference.js';
-import OtherMedia from './OtherMedia.js';
+import Media from './Media.js';
+import PortfolioAlbum from './PortfolioAlbum.js';
+import PortfolioReview from './PortfolioReview.js';
+// import PortfolioInquiry from './PortfolioInquiry.js';
+// import PortfolioOffer from './PortfolioOffer.js';
+// import ModerationReport from './ModerationReport.js';
+// import ChatRoom from './ChatRoom.js';
+// import ChatMessage from './ChatMessage.js';
+// import ListingOffer from './ListingOffer.js';
+import Invoice from './Invoice.js';
+import Transaction from './Transaction.js';
+// import UserFavorite from './UserFavorite.js';
+// import UserActivityLog from './UserActivityLog.js';
+// import UserLocationPreference from './UserLocationPreference.js';
+// import UserNotification from './UserNotification.js';
+// import UserNotificationPreference from './UserNotificationPreference.js';
+// import OtherMedia from './OtherMedia.js';
 import OtpVerification from './OtpVerification.js';
-import UserSearch from './UserSearch.js';
-
-// Initialize models
-const User = UserModel(sequelize);
-const UserProfile = UserProfileModel(sequelize);
-const UserSession = UserSessionModel(sequelize);
-const UserSocialAccount = UserSocialAccountModel(sequelize);
-const SubscriptionPlan = SubscriptionPlanModel(sequelize);
-const UserSubscription = UserSubscriptionModel(sequelize);
-const Invoice = InvoiceModel(sequelize);
-const Transaction = TransactionModel(sequelize);
+// import UserSearch from './UserSearch.js';
+// import VendorProfile from './VendorProfile.js';
+import BusinessProfile from './BusinessProfile.js';
 
 const models = {
   Country,
@@ -54,35 +43,34 @@ const models = {
   Permission,
   RolePermission,
   User,
-  UserProfile,
   UserSession,
-  UserSocialAccount,
+  // UserSocialAccount,
   SubscriptionPlan,
   UserSubscription,
   Invoice,
   Transaction,
-  CarBrand,
-  CarModel,
-  CarVariant,
-  CarSpecification,
-  DataRequest,
+  // DataRequest,
   Category,
   Portfolio,
-  PortfolioMedia,
-  PortfolioInquiry,
-  PortfolioOffer,
-  ModerationReport,
-  ChatRoom,
-  ChatMessage,
-  ListingOffer,
-  UserFavorite,
-  UserActivityLog,
-  UserLocationPreference,
-  UserNotification,
-  UserNotificationPreference,
-  OtherMedia,
+  Media,
+  PortfolioAlbum,
+  PortfolioReview,
+  // PortfolioInquiry,
+  // PortfolioOffer,
+  // ModerationReport,
+  // ChatRoom,
+  // ChatMessage,
+  // ListingOffer,
+  // UserFavorite,
+  // UserActivityLog,
+  // UserLocationPreference,
+  // UserNotification,
+  // UserNotificationPreference,
+  // OtherMedia,
   OtpVerification,
-  UserSearch
+  // UserSearch,
+  // VendorProfile,
+  BusinessProfile
 };
 
 // Set up associations
@@ -127,9 +115,8 @@ City.associate(models);
 
 // User associations
 User.associate(models);
-UserProfile.associate(models);
 UserSession.associate(models);
-UserSocialAccount.associate(models);
+// UserSocialAccount.associate(models);
 
 // SubscriptionPlan associations
 SubscriptionPlan.associate(models);
@@ -137,50 +124,52 @@ SubscriptionPlan.associate(models);
 // UserSubscription associations
 UserSubscription.associate(models);
 
-// Car associations
-CarBrand.associate(models);
-CarModel.associate(models);
-CarVariant.associate(models);
-CarSpecification.associate(models);
-
 // Data request associations
-DataRequest.associate(models);
+// DataRequest.associate(models);
 
 // Category associations
 Category.associate(models);
 
 // Portfolio associations
 Portfolio.associate(models);
-PortfolioMedia.associate(models);
-PortfolioInquiry.associate(models);
-PortfolioOffer.associate(models);
+Media.associate(models);
+PortfolioAlbum.associate(models);
+PortfolioReview.associate(models);
+// PortfolioInquiry.associate(models);
+// PortfolioOffer.associate(models);
 
-// Chat associations
-ChatRoom.associate(models);
-ChatMessage.associate(models);
-ListingOffer.associate(models);
+// Chat associations (disabled for Phase 1)
+// ChatRoom.associate(models);
+// ChatMessage.associate(models);
+// ListingOffer.associate(models);
 
-// UserFavorite associations
-UserFavorite.associate(models);
+// UserFavorite associations (disabled for Phase 1)
+// UserFavorite.associate(models);
 
-// User activity and notification associations
-UserActivityLog.associate(models);
-UserLocationPreference.associate(models);
-UserNotification.associate(models);
-UserNotificationPreference.associate(models);
+// User activity and notification associations (disabled for Phase 1)
+// UserActivityLog.associate(models);
+// UserLocationPreference.associate(models);
+// UserNotification.associate(models);
+// UserNotificationPreference.associate(models);
 
 // Invoice and Transaction associations
 Invoice.associate(models);
 Transaction.associate(models);
 
-// OtherMedia associations
-OtherMedia.associate(models);
+// OtherMedia associations (disabled for Phase 1)
+// OtherMedia.associate(models);
 
-// ModerationReport associations
-ModerationReport.associate(models);
+// ModerationReport associations (disabled for Phase 1)
+// ModerationReport.associate(models);
 
-// UserSearch associations
-UserSearch.associate(models);
+// UserSearch associations (disabled for Phase 1)
+// UserSearch.associate(models);
+
+// VendorProfile associations (disabled for Phase 1)
+// VendorProfile.associate(models);
+
+// BusinessProfile associations
+BusinessProfile.associate(models);
 
 export { sequelize };
 export default models;

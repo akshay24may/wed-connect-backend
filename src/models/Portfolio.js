@@ -1,10 +1,72 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import sequelize from '#config/database.js';
 import { generateUniqueSlug } from '#utils/customSlugify.js';
 import { getFullUrl } from '#utils/storageHelper.js';
 
-const Portfolio = sequelize.define(
-  'Portfolio',
+class Portfolio extends Model {
+  static associate(models) {
+    this.belongsTo(models.User, {
+      foreignKey: 'user_id',
+      as: 'user'
+    });
+
+    this.belongsTo(models.BusinessProfile, {
+      foreignKey: 'business_profile_id',
+      as: 'businessProfile'
+    });
+
+    this.belongsTo(models.Category, {
+      foreignKey: 'category_id',
+      as: 'category'
+    });
+
+    this.belongsTo(models.State, {
+      foreignKey: 'state_id',
+      as: 'state'
+    });
+
+    this.belongsTo(models.City, {
+      foreignKey: 'city_id',
+      as: 'city'
+    });
+
+    // Media association (renamed from PortfolioMedia)
+    this.hasMany(models.Media, {
+      foreignKey: 'entityId',
+      as: 'media',
+      scope: {
+        entityType: 'portfolio'
+      }
+    });
+
+    this.hasMany(models.PortfolioAlbum, {
+      foreignKey: 'portfolioId',
+      as: 'albums'
+    });
+
+    this.hasMany(models.PortfolioReview, {
+      foreignKey: 'portfolioId',
+      as: 'reviews'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'approved_by',
+      as: 'approver'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'rejected_by',
+      as: 'rejecter'
+    });
+
+    this.belongsTo(models.UserSubscription, {
+      foreignKey: 'user_subscription_id',
+      as: 'userSubscription'
+    });
+  }
+}
+
+Portfolio.init(
   {
     id: {
       type: DataTypes.BIGINT,
@@ -17,6 +79,11 @@ const Portfolio = sequelize.define(
       allowNull: false,
       field: 'user_id'
     },
+    businessProfileId: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      field: 'business_profile_id'
+    },
     categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -24,13 +91,24 @@ const Portfolio = sequelize.define(
     },
     categorySlug: {
       type: DataTypes.STRING(100),
-      allowNull: true,
+      allowNull: false,
       field: 'category_slug'
     },
     userSubscriptionId: {
       type: DataTypes.BIGINT,
       allowNull: true,
       field: 'user_subscription_id'
+    },
+    cityTier: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      field: 'city_tier'
+    },
+    isFreePlanPortfolio: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_free_plan_portfolio'
     },
     title: {
       type: DataTypes.STRING(200),
@@ -54,14 +132,9 @@ const Portfolio = sequelize.define(
       allowNull: true,
       field: 'description'
     },
-    startingPrice: {
-      type: DataTypes.DECIMAL(15, 2),
-      allowNull: true,
-      field: 'starting_price'
-    },
     priceRangeMin: {
       type: DataTypes.DECIMAL(15, 2),
-      allowNull: true,
+      allowNull: false,
       field: 'price_range_min'
     },
     priceRangeMax: {
@@ -75,6 +148,107 @@ const Portfolio = sequelize.define(
       defaultValue: false,
       field: 'price_on_request'
     },
+    priceUnit: {
+      type: DataTypes.ENUM('per_day', 'per_event', 'per_hour', 'per_guest', 'per_plate', 'per_item', 'fixed', 'na'),
+      allowNull: true,
+      field: 'price_unit'
+    },
+    priceBreakdown: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'price_breakdown'
+    },
+    advancePercentage: {
+      type: DataTypes.SMALLINT,
+      allowNull: true,
+      field: 'advance_percentage'
+    },
+    financialTerms: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'financial_terms'
+    },
+    highlights: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'highlights'
+    },
+    servicesOfferedTags: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'services_offered_tags'
+    },
+    servicesDescription: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'services_description'
+    },
+    coverageCities: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'coverage_cities'
+    },
+    acceptsDestinationWedding: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'accepts_destination_wedding'
+    },
+    destinationWeddingFeeDifferent: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'destination_wedding_fee_different'
+    },
+    cancellationPolicyUser: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'cancellation_policy_user'
+    },
+    cancellationPolicyVendor: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'cancellation_policy_vendor'
+    },
+    workingStyle: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'working_style'
+    },
+    longDescription: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'long_description'
+    },
+    decorPolicy: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: 'decor_policy'
+    },
+    acceptsAdvanceBooking: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+      field: 'accepts_advance_booking'
+    },
+    minAdvanceBookingDays: {
+      type: DataTypes.SMALLINT,
+      allowNull: false,
+      defaultValue: 7,
+      field: 'min_advance_booking_days'
+    },
+    weddingsCompleted: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'weddings_completed'
+    },
+    happyClientsCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'happy_clients_count'
+    },
     stateId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -87,33 +261,18 @@ const Portfolio = sequelize.define(
     },
     stateSlug: {
       type: DataTypes.STRING(255),
-      allowNull: true,
+      allowNull: false,
       field: 'state_slug'
     },
     citySlug: {
       type: DataTypes.STRING(255),
-      allowNull: true,
+      allowNull: false,
       field: 'city_slug'
-    },
-    locality: {
-      type: DataTypes.STRING(200),
-      allowNull: true,
-      field: 'locality'
     },
     address: {
       type: DataTypes.TEXT,
       allowNull: true,
       field: 'address'
-    },
-    latitude: {
-      type: DataTypes.DECIMAL(10, 8),
-      allowNull: true,
-      field: 'latitude'
-    },
-    longitude: {
-      type: DataTypes.DECIMAL(11, 8),
-      allowNull: true,
-      field: 'longitude'
     },
     status: {
       type: DataTypes.ENUM('draft', 'pending', 'published', 'rejected'),
@@ -131,6 +290,28 @@ const Portfolio = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
       field: 'featured_until'
+    },
+    isBoosted: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_boosted'
+    },
+    boostedUntil: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'boosted_until'
+    },
+    isRecommended: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_recommended'
+    },
+    recommendedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'recommended_at'
     },
     publishedAt: {
       type: DataTypes.DATE,
@@ -180,6 +361,24 @@ const Portfolio = sequelize.define(
       defaultValue: 0,
       field: 'total_favorites'
     },
+    averageRating: {
+      type: DataTypes.DECIMAL(3, 2),
+      allowNull: false,
+      defaultValue: 0.00,
+      field: 'average_rating'
+    },
+    totalReviews: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'total_reviews'
+    },
+    ratingDistribution: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      defaultValue: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 },
+      field: 'rating_distribution'
+    },
     coverImage: {
       type: DataTypes.STRING(500),
       allowNull: true,
@@ -187,8 +386,7 @@ const Portfolio = sequelize.define(
       get() {
         const rawValue = this.getDataValue('coverImage');
         const storageType = this.getDataValue('coverImageStorageType');
-        const mimeType = this.getDataValue('coverImageMimeType');
-        return getFullUrl(rawValue, storageType, mimeType);
+        return getFullUrl(rawValue, storageType);
       }
     },
     coverImageStorageType: {
@@ -206,11 +404,6 @@ const Portfolio = sequelize.define(
       ),
       allowNull: true,
       field: 'cover_image_storage_type'
-    },
-    coverImageMimeType: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-      field: 'cover_image_mime_type'
     },
     isAutoApproved: {
       type: DataTypes.BOOLEAN,
@@ -243,6 +436,11 @@ const Portfolio = sequelize.define(
       type: DataTypes.JSONB,
       allowNull: true,
       field: 'service_details'
+    },
+    internalNotes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'internal_notes'
     },
     createdBy: {
       type: DataTypes.BIGINT,
@@ -305,47 +503,5 @@ const Portfolio = sequelize.define(
     }
   }
 );
-
-Portfolio.associate = (models) => {
-  Portfolio.belongsTo(models.User, {
-    foreignKey: 'user_id',
-    as: 'user'
-  });
-
-  Portfolio.belongsTo(models.Category, {
-    foreignKey: 'category_id',
-    as: 'category'
-  });
-
-  Portfolio.belongsTo(models.State, {
-    foreignKey: 'state_id',
-    as: 'state'
-  });
-
-  Portfolio.belongsTo(models.City, {
-    foreignKey: 'city_id',
-    as: 'city'
-  });
-
-  Portfolio.hasMany(models.PortfolioMedia, {
-    foreignKey: 'portfolio_id',
-    as: 'media'
-  });
-
-  Portfolio.belongsTo(models.User, {
-    foreignKey: 'approved_by',
-    as: 'approver'
-  });
-
-  Portfolio.belongsTo(models.User, {
-    foreignKey: 'rejected_by',
-    as: 'rejecter'
-  });
-
-  Portfolio.belongsTo(models.UserSubscription, {
-    foreignKey: 'user_subscription_id',
-    as: 'userSubscription'
-  });
-};
 
 export default Portfolio;

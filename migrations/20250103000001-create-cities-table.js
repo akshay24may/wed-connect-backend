@@ -62,7 +62,7 @@ export async function up(queryInterface, Sequelize) {
       allowNull: true,
     },
     city_tier: {
-      type: Sequelize.ENUM('tier_1', 'tier_2', 'tier_3', 'tier_4', 'tier_5'),
+      type: Sequelize.STRING(20),
       allowNull: false,
       defaultValue: 'tier_3'
     },
@@ -83,13 +83,7 @@ export async function up(queryInterface, Sequelize) {
     },
     created_by: {
       type: Sequelize.BIGINT,
-      allowNull: true,
-      references: {
-        model: 'users',
-        key: 'id'
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'SET NULL'
+      allowNull: true
     },
     updated_by: {
       type: Sequelize.JSON,
@@ -97,13 +91,7 @@ export async function up(queryInterface, Sequelize) {
     },
     deleted_by: {
       type: Sequelize.BIGINT,
-      allowNull: true,
-      references: {
-        model: 'users',
-        key: 'id'
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'SET NULL'
+      allowNull: true
     },
     deleted_at: {
       type: Sequelize.DATE,

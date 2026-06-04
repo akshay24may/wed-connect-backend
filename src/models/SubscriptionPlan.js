@@ -1,7 +1,38 @@
-import { DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
+import sequelize from '#config/database.js';
+import { generateUniqueSlug } from '#utils/customSlugify.js';
 
-export default (sequelize) => {
-  const SubscriptionPlan = sequelize.define('SubscriptionPlan', {
+class SubscriptionPlan extends Model {
+  static associate(models) {
+    this.belongsTo(models.Category, {
+      foreignKey: 'category_id',
+      as: 'category'
+    });
+
+    this.hasMany(models.UserSubscription, {
+      foreignKey: 'plan_id',
+      as: 'userSubscriptions'
+    });
+
+    this.belongsTo(models.SubscriptionPlan, {
+      foreignKey: 'replaced_by_plan_id',
+      as: 'replacementPlan'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'created_by',
+      as: 'creator'
+    });
+
+    this.belongsTo(models.User, {
+      foreignKey: 'deleted_by',
+      as: 'deleter'
+    });
+  }
+}
+
+SubscriptionPlan.init(
+  {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -41,7 +72,6 @@ export default (sequelize) => {
       allowNull: true,
       field: 'short_description'
     },
-    // Pricing
     basePrice: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
@@ -74,7 +104,6 @@ export default (sequelize) => {
       allowNull: false,
       field: 'duration_days'
     },
-    // Display & Marketing
     tagline: {
       type: DataTypes.STRING(255),
       allowNull: true,
@@ -103,7 +132,6 @@ export default (sequelize) => {
       defaultValue: 0,
       field: 'sort_order'
     },
-    // Category & Location Restrictions
     categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -114,121 +142,129 @@ export default (sequelize) => {
       allowNull: false,
       field: 'category_name'
     },
-    cityTier: {
-      type: DataTypes.INTEGER,
+    categorySlug: {
+      type: DataTypes.STRING(100),
       allowNull: false,
-      field: 'city_tier',
-      comment: 'City tier: 1, 2, or 3'
+      field: 'category_slug'
     },
-    // Portfolio Quotas
+    cityTier: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      field: 'city_tier'
+    },
     maxPublishedPortfolios: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0,
-      field: 'max_published_portfolios',
-      comment: 'Max published portfolios (only published count toward quota)'
-    },
-    portfoliosQuotaRollingDays: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'portfolios_quota_rolling_days',
-      comment: 'Rolling window period in days for portfolio quota'
+      defaultValue: 1,
+      field: 'max_published_portfolios'
     },
     maxStorageMb: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      field: 'max_storage_mb',
-      comment: 'Maximum storage in MB for all portfolio media (null = unlimited)'
+      field: 'max_storage_mb'
     },
-    // Featured & Promotional
-    maxFeaturedPortfolios: {
+    maxAlbumsPerPortfolio: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'max_featured_portfolios',
-      comment: 'Max portfolios that can be marked as featured'
+      field: 'max_albums_per_portfolio'
     },
-    maxHomepagePortfolios: {
+    maxPhotosPerAlbum: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'max_homepage_portfolios',
-      comment: 'Max portfolios shown on homepage'
+      field: 'max_photos_per_album'
+    },
+    maxVideosPerAlbum: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'max_videos_per_album'
+    },
+    allowVideos: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'allow_videos'
+    },
+    isFeaturedAllowed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_featured_allowed'
     },
     featuredDays: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'featured_days',
-      comment: 'Duration for featured status (0 = unlimited)'
+      field: 'featured_days'
     },
-    homepageDays: {
+    isBoostedAllowed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_boosted_allowed'
+    },
+    boostedDays: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'homepage_days',
-      comment: 'Duration for homepage visibility (0 = unlimited)'
+      field: 'boosted_days'
     },
-    // Visibility & Priority
+    canBeRecommended: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'can_be_recommended'
+    },
     priorityScore: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'priority_score',
-      comment: 'Priority score for ranking'
+      field: 'priority_score'
     },
     searchBoostMultiplier: {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: false,
       defaultValue: 1.0,
-      field: 'search_boost_multiplier',
-      comment: 'Search ranking boost multiplier'
+      field: 'search_boost_multiplier'
     },
     nationalVisibility: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-      field: 'national_visibility',
-      comment: 'Show portfolios nationally (not just in selected city)'
+      field: 'national_visibility'
     },
-    // Portfolio Management
     isAutoApproveEnabled: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-      field: 'is_auto_approve_enabled',
-      comment: 'If true, portfolios under this plan are auto-approved'
+      field: 'is_auto_approve_enabled'
     },
-    // Republish Settings
     maxRepublishCount: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'max_republish_count',
-      comment: 'Maximum times a portfolio can be republished (0 = unlimited)'
+      field: 'max_republish_count'
     },
     republishCooldownDays: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 7,
-      field: 'republish_cooldown_days',
-      comment: 'Minimum days required between consecutive republishes'
+      field: 'republish_cooldown_days'
     },
-    // Support
     supportLevel: {
       type: DataTypes.ENUM('none', 'standard', 'priority', 'dedicated'),
       allowNull: false,
       defaultValue: 'standard',
       field: 'support_level'
     },
-    // Features JSONB
     features: {
       type: DataTypes.JSON,
       allowNull: false,
       defaultValue: {},
       field: 'features'
     },
-    // Metadata
     metadata: {
       type: DataTypes.JSON,
       allowNull: false,
@@ -245,7 +281,6 @@ export default (sequelize) => {
       allowNull: true,
       field: 'terms_and_conditions'
     },
-    // Status & Visibility
     isActive: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -264,7 +299,6 @@ export default (sequelize) => {
       defaultValue: false,
       field: 'is_default'
     },
-    // Versioning
     deprecatedAt: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -275,7 +309,6 @@ export default (sequelize) => {
       allowNull: true,
       field: 'replaced_by_plan_id'
     },
-    // Audit Fields
     createdBy: {
       type: DataTypes.BIGINT,
       allowNull: true,
@@ -291,7 +324,8 @@ export default (sequelize) => {
       allowNull: true,
       field: 'deleted_by'
     }
-  }, {
+  },
+  {
     sequelize,
     tableName: 'subscription_plans',
     timestamps: true,
@@ -301,46 +335,34 @@ export default (sequelize) => {
     updatedAt: 'updated_at',
     deletedAt: 'deleted_at',
     hooks: {
-      beforeUpdate: async (plan, options) => {
-        if (options.userId && options.userName) {
-          const currentUpdates = plan.updatedBy || [];
-          plan.updatedBy = [
+      beforeCreate: async (instance, options) => {
+        if (!instance.slug && instance.name) {
+          instance.slug = generateUniqueSlug(instance.name);
+        }
+        if (options.userId) {
+          instance.createdBy = options.userId;
+        }
+      },
+      beforeUpdate: async (instance, options) => {
+        if (options.userId) {
+          const currentUpdates = instance.updatedBy || [];
+          instance.updatedBy = [
             ...currentUpdates,
             {
               userId: options.userId,
-              userName: options.userName,
               timestamp: new Date().toISOString()
             }
           ];
         }
+      },
+      beforeDestroy: async (instance, options) => {
+        if (options.userId) {
+          instance.deletedBy = options.userId;
+          await instance.save({ hooks: false });
+        }
       }
     }
-  });
+  }
+);
 
-  SubscriptionPlan.associate = (models) => {
-    // Self-referencing for plan replacement
-    SubscriptionPlan.belongsTo(models.SubscriptionPlan, {
-      foreignKey: 'replacedByPlanId',
-      as: 'replacementPlan'
-    });
-
-    // Category association
-    SubscriptionPlan.belongsTo(models.Category, {
-      foreignKey: 'categoryId',
-      as: 'category'
-    });
-
-    // Audit associations
-    SubscriptionPlan.belongsTo(models.User, {
-      foreignKey: 'createdBy',
-      as: 'creator'
-    });
-
-    SubscriptionPlan.belongsTo(models.User, {
-      foreignKey: 'deletedBy',
-      as: 'deleter'
-    });
-  };
-
-  return SubscriptionPlan;
-};
+export default SubscriptionPlan;

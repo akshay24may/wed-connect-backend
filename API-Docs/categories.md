@@ -1,519 +1,204 @@
 # Categories API Documentation
 
-## Overview
-
-Categories module provides endpoints for managing listing categories (Cars, Properties, etc.). Categories are small lookup tables that organize listings into different types.
-
-**Base URL:** `/api`
+Complete API reference for category management across panel, vendor, and public endpoints.
 
 ---
 
-## Public Endpoints (No Authentication)
+## Table of Contents
 
-### 1. Get All Active Categories
+1. [Panel Category Endpoints](#panel-category-endpoints)
+2. [Vendor Category Endpoints](#vendor-category-endpoints)
+3. [Public Category Endpoints](#public-category-endpoints)
+4. [Error Codes](#error-codes)
 
-Get list of all active categories for public browsing.
+---
 
-**Endpoint:** `GET /api/public/categories`
+## Panel Category Endpoints
+
+### 1. Get All Categories (Admin View)
+
+**Endpoint:** `GET /api/panel/categories`
+
+**Auth:** Required (admin/staff)
 
 **Query Parameters:**
-- `featured` (optional, boolean) - Filter by featured categories only
+- `page` (number, optional) - Page number (default: 1)
+- `limit` (number, optional) - Items per page (default: 50)
+- `isActive` (boolean, optional) - Filter by active status
+- `groupSlug` (string, optional) - Filter by group slug
 
-**Request Headers:**
-```
-Content-Type: application/json
-```
-
-**Response (200 OK):**
+**Response:**
 ```json
 {
   "success": true,
   "message": "Categories retrieved successfully",
-  "data": [
-    {
-      "id": 1,
-      "name": "Cars",
-      "slug": "cars",
-      "description": "Buy and sell new and used cars",
-      "icon": "http://localhost:5000/uploads/categories/2024/11/cars-icon.jpg",
-      "imageUrl": "http://localhost:5000/uploads/categories/2024/11/cars-banner.jpg",
-      "displayOrder": 1,
-      "isFeatured": true,
-      "isActive": true,
-      "createdAt": "2024-11-23T10:00:00.000Z",
-      "updatedAt": "2024-11-23T10:00:00.000Z"
+  "data": {
+    "categories": [
+      {
+        "id": 1,
+        "name": "Photography",
+        "slug": "photography",
+        "groupSlug": "visuals-and-beauty",
+        "description": "Professional wedding photography services",
+        "icon": "https://example.com/uploads/categories/photography-icon.png",
+        "bannerImage": "https://example.com/uploads/categories/photography-banner.jpg",
+        "colorCode": "#FF5733",
+        "subtypes": ["Candid", "Traditional", "Pre-Wedding", "Drone"],
+        "displayOrder": 1,
+        "isFeatured": true,
+        "isActive": true,
+        "metaTitle": "Wedding Photography Services",
+        "metaDescription": "Find the best wedding photographers",
+        "metaKeywords": "wedding, photography, candid, traditional",
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-15T10:30:00Z"
+      }
+    ],
+    "pagination": {
+      "total": 12,
+      "page": 1,
+      "limit": 50,
+      "totalPages": 1
     }
-  ]
+  }
 }
-```
-
-**Example Request:**
-```bash
-curl -X GET "http://localhost:5000/api/public/categories?featured=true"
 ```
 
 ---
 
-### 2. Get Category by Slug
+### 2. Get Single Category
 
-Get single category details by slug.
+**Endpoint:** `GET /api/panel/categories/:categoryId`
 
-**Endpoint:** `GET /api/public/categories/:slug`
+**Auth:** Required (admin/staff)
 
-**URL Parameters:**
-- `slug` (required, string) - Category slug (e.g., "cars", "properties")
-
-**Request Headers:**
-```
-Content-Type: application/json
-```
-
-**Response (200 OK):**
+**Response:**
 ```json
 {
   "success": true,
   "message": "Category retrieved successfully",
   "data": {
-    "id": 1,
-    "name": "Cars",
-    "slug": "cars",
-    "description": "Buy and sell new and used cars",
-    "icon": "http://localhost:5000/uploads/categories/2024/11/cars-icon.jpg",
-    "imageUrl": "http://localhost:5000/uploads/categories/2024/11/cars-banner.jpg",
-    "displayOrder": 1,
-    "isFeatured": true,
-    "isActive": true,
-    "createdAt": "2024-11-23T10:00:00.000Z",
-    "updatedAt": "2024-11-23T10:00:00.000Z"
+    "category": {
+      "id": 1,
+      "name": "Photography",
+      "slug": "photography",
+      "groupSlug": "visuals-and-beauty",
+      "description": "Professional wedding photography services",
+      "icon": "https://example.com/uploads/categories/photography-icon.png",
+      "bannerImage": "https://example.com/uploads/categories/photography-banner.jpg",
+      "colorCode": "#FF5733",
+      "subtypes": ["Candid", "Traditional", "Pre-Wedding", "Drone"],
+      "displayOrder": 1,
+      "isFeatured": true,
+      "isActive": true,
+      "metaTitle": "Wedding Photography Services",
+      "metaDescription": "Find the best wedding photographers",
+      "metaKeywords": "wedding, photography, candid, traditional"
+    }
   }
 }
 ```
 
-**Response (404 Not Found):**
-```json
-{
-  "success": false,
-  "message": "Category not found"
-}
-```
-
-**Example Request:**
-```bash
-curl -X GET "http://localhost:5000/api/public/categories/cars"
-```
-
 ---
-
-## Panel Endpoints (Admin/Staff - Authentication Required)
 
 ### 3. Create Category
 
-Create a new category with optional image upload.
-
 **Endpoint:** `POST /api/panel/categories`
 
-**Authentication:** Required (JWT token)
+**Auth:** Required (admin)
 
-**Request Headers:**
+**Body:**
+```json
+{
+  "name": "Photography",
+  "slug": "photography",
+  "groupSlug": "visuals-and-beauty",
+  "description": "Professional wedding photography services",
+  "colorCode": "#FF5733",
+  "subtypes": ["Candid", "Traditional", "Pre-Wedding", "Drone"],
+  "displayOrder": 1,
+  "isFeatured": true,
+  "isActive": true,
+  "metaTitle": "Wedding Photography Services",
+  "metaDescription": "Find the best wedding photographers",
+  "metaKeywords": "wedding, photography, candid, traditional"
+}
 ```
-Authorization: Bearer <access_token>
-Content-Type: multipart/form-data
-```
 
-**Request Body (multipart/form-data):**
-- `name` (required, string, min 2 chars) - Category name
-- `slug` (optional, string) - Auto-generated from name if not provided
-- `description` (optional, string) - Category description
-- `displayOrder` (optional, integer) - Display order (default: 0)
-- `isFeatured` (optional, boolean) - Featured status (default: true)
-- `isActive` (optional, boolean) - Active status (default: true)
-- `icon` (optional, file) - Category icon (max 2MB, jpg/png/webp)
-- `image` (optional, file) - Category banner image (max 2MB, jpg/png/webp)
+**Validation:**
+- `name` (required) - String, min 2 characters, unique
+- `slug` (optional) - Auto-generated if not provided, unique
+- `groupSlug` (optional) - String for grouping categories
+- `description` (optional) - Text
+- `colorCode` (optional) - Hex color code (e.g., #FF5733)
+- `subtypes` (optional) - Array of strings
+- `displayOrder` (optional) - Integer (default: 0)
+- `isFeatured` (optional) - Boolean (default: true)
+- `isActive` (optional) - Boolean (default: true)
+- `metaTitle` (optional) - String, max 150 characters
+- `metaDescription` (optional) - String, max 300 characters
+- `metaKeywords` (optional) - Text
 
-**Response (201 Created):**
+**Response:**
 ```json
 {
   "success": true,
   "message": "Category created successfully",
   "data": {
-    "id": 3,
-    "name": "Electronics",
-    "slug": "electronics",
-    "description": "Buy and sell electronics",
-    "icon": null,
-    "imageUrl": "http://localhost:5000/uploads/categories/2024/11/electronics-abc123.jpg",
-    "displayOrder": 3,
-    "isFeatured": true,
-    "isActive": true,
-    "createdBy": 1,
-    "updatedBy": null,
-    "deletedBy": null,
-    "createdAt": "2024-11-23T10:00:00.000Z",
-    "updatedAt": "2024-11-23T10:00:00.000Z"
-  }
-}
-```
-
-**Response (400 Bad Request):**
-```json
-{
-  "success": false,
-  "message": "Category name already exists"
-}
-```
-
-**Example Request:**
-```bash
-curl -X POST "http://localhost:5000/api/panel/categories" \
-  -H "Authorization: Bearer <token>" \
-  -F "name=Electronics" \
-  -F "description=Buy and sell electronics" \
-  -F "displayOrder=3" \
-  -F "icon=@/path/to/icon.jpg" \
-  -F "image=@/path/to/banner.jpg"
-```
-
----
-
-### 4. Get All Categories (Admin)
-
-Get all categories including inactive ones with optional filters.
-
-**Endpoint:** `GET /api/panel/categories`
-
-**Authentication:** Required (JWT token)
-
-**Query Parameters:**
-- `isActive` (optional, boolean) - Filter by active status
-- `isFeatured` (optional, boolean) - Filter by featured status
-- `search` (optional, string) - Search by name or slug
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: application/json
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Categories retrieved successfully",
-  "data": [
-    {
+    "category": {
       "id": 1,
-      "name": "Cars",
-      "slug": "cars",
-      "description": "Buy and sell new and used cars",
-      "icon": "http://localhost:5000/uploads/categories/2024/11/cars-icon.jpg",
-      "imageUrl": "http://localhost:5000/uploads/categories/2024/11/cars-banner.jpg",
+      "name": "Photography",
+      "slug": "photography",
       "displayOrder": 1,
       "isFeatured": true,
-      "isActive": true,
-      "createdBy": null,
-      "updatedBy": [
-        {
-          "userId": 1,
-          "userName": "admin@example.com",
-          "timestamp": "2024-11-23T10:00:00.000Z"
-        }
-      ],
-      "deletedBy": null,
-      "createdAt": "2024-11-23T10:00:00.000Z",
-      "updatedAt": "2024-11-23T10:00:00.000Z"
+      "isActive": true
     }
-  ]
-}
-```
-
-**Example Request:**
-```bash
-curl -X GET "http://localhost:5000/api/panel/categories?isActive=true&search=car" \
-  -H "Authorization: Bearer <token>"
-```
-
----
-
-### 5. Get Category by ID
-
-Get single category details by ID.
-
-**Endpoint:** `GET /api/panel/categories/:id`
-
-**Authentication:** Required (JWT token)
-
-**URL Parameters:**
-- `id` (required, integer) - Category ID
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: application/json
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Category retrieved successfully",
-  "data": {
-    "id": 1,
-    "name": "Cars",
-    "slug": "cars",
-    "description": "Buy and sell new and used cars",
-    "icon": "http://localhost:5000/uploads/categories/2024/11/cars-icon.jpg",
-    "imageUrl": "http://localhost:5000/uploads/categories/2024/11/cars-banner.jpg",
-    "displayOrder": 1,
-    "isFeatured": true,
-    "isActive": true,
-    "createdBy": null,
-    "updatedBy": null,
-    "deletedBy": null,
-    "createdAt": "2024-11-23T10:00:00.000Z",
-    "updatedAt": "2024-11-23T10:00:00.000Z"
   }
 }
 ```
 
-**Response (404 Not Found):**
+---
+
+### 4. Update Category
+
+**Endpoint:** `PUT /api/panel/categories/:categoryId`
+
+**Auth:** Required (admin)
+
+**Body:**
 ```json
 {
-  "success": false,
-  "message": "Category not found"
+  "name": "Wedding Photography",
+  "groupSlug": "visuals-and-beauty",
+  "description": "Updated description",
+  "colorCode": "#FF6644",
+  "subtypes": ["Candid", "Traditional", "Pre-Wedding", "Drone", "Cinematic"],
+  "displayOrder": 2,
+  "isFeatured": false,
+  "isActive": true
 }
 ```
 
-**Example Request:**
-```bash
-curl -X GET "http://localhost:5000/api/panel/categories/1" \
-  -H "Authorization: Bearer <token>"
-```
-
----
-
-### 6. Update Category
-
-Update category details with optional image upload.
-
-**Endpoint:** `PUT /api/panel/categories/:id`
-
-**Authentication:** Required (JWT token)
-
-**URL Parameters:**
-- `id` (required, integer) - Category ID
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: multipart/form-data
-```
-
-**Request Body (multipart/form-data):**
-- `name` (optional, string, min 2 chars) - Category name
-- `slug` (optional, string) - Category slug
-- `description` (optional, string) - Category description
-- `displayOrder` (optional, integer) - Display order
-- `isFeatured` (optional, boolean) - Featured status
-- `isActive` (optional, boolean) - Active status
-- `icon` (optional, file) - Category icon (replaces existing)
-- `image` (optional, file) - Category banner image (replaces existing)
-
-**Response (200 OK):**
+**Response:**
 ```json
 {
   "success": true,
   "message": "Category updated successfully",
   "data": {
-    "id": 1,
-    "name": "Cars & Vehicles",
-    "slug": "cars-vehicles",
-    "description": "Buy and sell new and used cars and vehicles",
-    "icon": "http://localhost:5000/uploads/categories/2024/11/cars-icon.jpg",
-    "imageUrl": "http://localhost:5000/uploads/categories/2024/11/cars-new-xyz789.jpg",
-    "displayOrder": 1,
-    "isFeatured": true,
-    "isActive": true,
-    "createdBy": null,
-    "updatedBy": [
-      {
-        "userId": 1,
-        "userName": "admin@example.com",
-        "timestamp": "2024-11-23T11:00:00.000Z"
-      }
-    ],
-    "deletedBy": null,
-    "createdAt": "2024-11-23T10:00:00.000Z",
-    "updatedAt": "2024-11-23T11:00:00.000Z"
+    "category": { /* updated category object */ }
   }
 }
 ```
 
-**Response (400 Bad Request):**
-```json
-{
-  "success": false,
-  "message": "Category name already exists"
-}
-```
-
-**Example Request:**
-```bash
-curl -X PUT "http://localhost:5000/api/panel/categories/1" \
-  -H "Authorization: Bearer <token>" \
-  -F "name=Cars & Vehicles" \
-  -F "description=Buy and sell new and used cars and vehicles" \
-  -F "icon=@/path/to/new-icon.jpg" \
-  -F "image=@/path/to/new-banner.jpg"
-```
-
 ---
 
-### 7. Update Category Status
+### 5. Delete Category
 
-Update category active/inactive status.
+**Endpoint:** `DELETE /api/panel/categories/:categoryId`
 
-**Endpoint:** `PATCH /api/panel/categories/status/:id`
+**Auth:** Required (admin)
 
-**Authentication:** Required (JWT token)
-
-**URL Parameters:**
-- `id` (required, integer) - Category ID
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-  "isActive": false
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Category status updated successfully",
-  "data": {
-    "id": 1,
-    "name": "Cars",
-    "slug": "cars",
-    "isActive": false,
-    "updatedBy": [
-      {
-        "userId": 1,
-        "userName": "admin@example.com",
-        "timestamp": "2024-11-23T11:00:00.000Z"
-      }
-    ],
-    "updatedAt": "2024-11-23T11:00:00.000Z"
-  }
-}
-```
-
-**Response (400 Bad Request):**
-```json
-{
-  "success": false,
-  "message": "isActive field is required"
-}
-```
-
-**Example Request:**
-```bash
-curl -X PATCH "http://localhost:5000/api/panel/categories/status/1" \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{"isActive": false}'
-```
-
----
-
-### 8. Update Category Featured Status
-
-Update category featured status.
-
-**Endpoint:** `PATCH /api/panel/categories/featured/:id`
-
-**Authentication:** Required (JWT token)
-
-**URL Parameters:**
-- `id` (required, integer) - Category ID
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-  "isFeatured": true
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Category featured status updated successfully",
-  "data": {
-    "id": 1,
-    "name": "Cars",
-    "slug": "cars",
-    "isFeatured": true,
-    "updatedBy": [
-      {
-        "userId": 1,
-        "userName": "admin@example.com",
-        "timestamp": "2024-11-23T11:00:00.000Z"
-      }
-    ],
-    "updatedAt": "2024-11-23T11:00:00.000Z"
-  }
-}
-```
-
-**Response (400 Bad Request):**
-```json
-{
-  "success": false,
-  "message": "isFeatured field is required"
-}
-```
-
-**Example Request:**
-```bash
-curl -X PATCH "http://localhost:5000/api/panel/categories/featured/1" \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{"isFeatured": true}'
-```
-
----
-
-### 9. Delete Category
-
-Soft delete a category.
-
-**Endpoint:** `DELETE /api/panel/categories/:id`
-
-**Authentication:** Required (JWT token)
-
-**URL Parameters:**
-- `id` (required, integer) - Category ID
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: application/json
-```
-
-**Response (200 OK):**
+**Response:**
 ```json
 {
   "success": true,
@@ -522,7 +207,201 @@ Content-Type: application/json
 }
 ```
 
-**Response (404 Not Found):**
+**Important Notes:**
+- Soft delete (paranoid: true)
+- Category can be restored if needed
+- Associated portfolios remain intact
+
+---
+
+### 6. Toggle Active Status
+
+**Endpoint:** `PATCH /api/panel/categories/status/:categoryId`
+
+**Auth:** Required (admin)
+
+**Body:**
+```json
+{
+  "isActive": true
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Category activated successfully",
+  "data": {
+    "category": {
+      "id": 1,
+      "name": "Photography",
+      "isActive": true
+    }
+  }
+}
+```
+
+---
+
+### 7. Toggle Featured Status
+
+**Endpoint:** `PATCH /api/panel/categories/featured/:categoryId`
+
+**Auth:** Required (admin/marketing)
+
+**Body:**
+```json
+{
+  "isFeatured": true
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Category marked as featured successfully",
+  "data": {
+    "category": {
+      "id": 1,
+      "name": "Photography",
+      "isFeatured": true
+    }
+  }
+}
+```
+
+---
+
+### 8. Reorder Category
+
+**Endpoint:** `PATCH /api/panel/categories/reorder/:categoryId`
+
+**Auth:** Required (admin)
+
+**Body:**
+```json
+{
+  "displayOrder": 5
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Category reordered successfully",
+  "data": {
+    "category": {
+      "id": 1,
+      "name": "Photography",
+      "displayOrder": 5
+    }
+  }
+}
+```
+
+---
+
+## Vendor Category Endpoints
+
+### 1. Get Active Categories
+
+**Endpoint:** `GET /api/vendor/categories`
+
+**Auth:** Required (vendor)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Categories retrieved successfully",
+  "data": {
+    "categories": [
+      {
+        "id": 1,
+        "name": "Photography",
+        "slug": "photography",
+        "groupSlug": "visuals-and-beauty",
+        "description": "Professional wedding photography services",
+        "icon": "https://example.com/uploads/categories/photography-icon.png",
+        "bannerImage": "https://example.com/uploads/categories/photography-banner.jpg",
+        "colorCode": "#FF5733",
+        "subtypes": ["Candid", "Traditional", "Pre-Wedding", "Drone"],
+        "displayOrder": 1,
+        "isFeatured": true,
+        "metaTitle": "Wedding Photography Services",
+        "metaDescription": "Find the best wedding photographers"
+      }
+    ]
+  }
+}
+```
+
+**Important Notes:**
+- Only active categories returned (`isActive: true`)
+- Sorted by featured, display order, name
+- Used for portfolio creation dropdown
+
+---
+
+## Public Category Endpoints
+
+### 1. Get Active Categories
+
+**Endpoint:** `GET /api/public/categories`
+
+**Auth:** Not required (public)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Categories retrieved successfully",
+  "data": {
+    "categories": [
+      {
+        "id": 1,
+        "name": "Photography",
+        "slug": "photography",
+        "groupSlug": "visuals-and-beauty",
+        "description": "Professional wedding photography services",
+        "icon": "https://example.com/uploads/categories/photography-icon.png",
+        "bannerImage": "https://example.com/uploads/categories/photography-banner.jpg",
+        "colorCode": "#FF5733",
+        "subtypes": ["Candid", "Traditional", "Pre-Wedding", "Drone"],
+        "displayOrder": 1,
+        "isFeatured": true,
+        "metaTitle": "Wedding Photography Services",
+        "metaDescription": "Find the best wedding photographers"
+      }
+    ]
+  }
+}
+```
+
+**Important Notes:**
+- Only active categories returned (`isActive: true`)
+- Sorted by featured, display order, name
+- Used for homepage category listing
+- Used for category filter in search
+
+---
+
+## Error Codes
+
+### Common Errors
+
+**400 Bad Request**
+```json
+{
+  "success": false,
+  "message": "Category name is required"
+}
+```
+
+**404 Not Found**
 ```json
 {
   "success": false,
@@ -530,81 +409,132 @@ Content-Type: application/json
 }
 ```
 
-**Example Request:**
-```bash
-curl -X DELETE "http://localhost:5000/api/panel/categories/1" \
-  -H "Authorization: Bearer <token>"
-```
-
----
-
-## Data Models
-
-### Category Object
-
-```typescript
+**409 Conflict**
+```json
 {
-  id: number;                    // Category ID
-  name: string;                  // Category name (unique)
-  slug: string;                  // URL-friendly slug (unique)
-  description: string | null;    // Category description
-  icon: string | null;           // Absolute URL to icon image
-  imageUrl: string | null;       // Absolute URL to banner image
-  displayOrder: number;          // Display order (for sorting)
-  isFeatured: boolean;           // Featured on homepage
-  isActive: boolean;             // Active/inactive status
-  createdBy: number | null;      // User ID who created
-  updatedBy: Array<{             // Update history
-    userId: number;
-    userName: string;
-    timestamp: string;
-  }> | null;
-  deletedBy: number | null;      // User ID who deleted
-  createdAt: string;             // ISO timestamp
-  updatedAt: string;             // ISO timestamp
-  deletedAt: string | null;      // ISO timestamp (soft delete)
+  "success": false,
+  "message": "Category name already exists"
 }
 ```
 
----
+**500 Internal Server Error**
+```json
+{
+  "success": false,
+  "message": "Failed to create category"
+}
+```
 
-## Error Codes
+### Specific Error Messages
 
-| Status Code | Message | Description |
-|-------------|---------|-------------|
-| 200 | Success | Request successful |
-| 201 | Created | Resource created successfully |
-| 400 | Bad Request | Invalid request data or validation error |
-| 401 | Unauthorized | Missing or invalid authentication token |
-| 403 | Forbidden | Insufficient permissions |
-| 404 | Not Found | Category not found |
-| 500 | Internal Server Error | Server error |
+- `Category not found`
+- `Category name is required`
+- `Category name must be at least 2 characters`
+- `Category name already exists`
+- `Category slug already exists`
+- `Category ID is required`
+- `Active status is required`
+- `Featured status is required`
+- `Display order is required`
 
 ---
 
 ## Business Rules
 
-1. **Slug Generation**: Auto-generated from name using `customSlugify` if not provided
-2. **Unique Constraints**: Name and slug must be unique
-3. **Image Upload**: Max 2MB per file, formats: JPG, PNG, WebP
-4. **Two Image Types**: 
-   - `icon` - Category icon/logo
-   - `image` - Category banner/cover image
-5. **Image Processing**: Auto-compressed and resized to max 1920x1080
-6. **Filename Generation**: Uses timestamp + slugified name + random chars
-7. **Form Data Conversion**: All form data properly parsed and type-converted
-8. **Soft Delete**: Categories are soft-deleted (can be restored)
-9. **Audit Trail**: All updates tracked in `updatedBy` JSON array
-10. **URL Storage**: Database stores relative paths, API returns absolute URLs
+### Category Creation
+- Name must be unique
+- Slug auto-generated if not provided
+- Slug must be unique
+- Group Slug optional for UI grouping
+- Default values: `isFeatured: true`, `isActive: true`, `displayOrder: 0`
+
+### Category Update
+- Name uniqueness checked (excluding current category)
+- Slug uniqueness checked (excluding current category)
+- All fields optional
+
+### Category Deletion
+- Soft delete (can be restored)
+- Associated portfolios remain intact
+- Subscription plans remain intact
+
+### Active Status
+- Only active categories visible to vendors and public
+- Inactive categories still visible in admin panel
+- Can be toggled on/off
+
+### Featured Status
+- Featured categories appear first in listings
+- Used for homepage highlighting
+- Can be toggled on/off
+
+### Display Order
+- Controls sort order within featured/non-featured groups
+- Lower numbers appear first
+- Can be updated independently
+
+---
+
+## Sorting Logic
+
+**All Endpoints:**
+Categories are sorted by:
+1. Featured categories first (`isFeatured: true`)
+2. Then by display order (`displayOrder` ASC)
+3. Finally by name (`name` ASC)
+
+---
+
+## Use Cases
+
+### 1. Admin Category Management
+```http
+# List all categories
+GET /api/panel/categories
+
+# Create new category
+POST /api/panel/categories
+Body: { "name": "Makeup Artists", "groupSlug": "visuals-and-beauty", "colorCode": "#FF69B4" }
+
+# Update category
+PUT /api/panel/categories/5
+Body: { "description": "Updated description" }
+
+# Deactivate category
+PATCH /api/panel/categories/status/5
+Body: { "isActive": false }
+```
+
+### 2. Vendor Portfolio Creation
+```http
+# Get active categories for dropdown
+GET /api/vendor/categories
+```
+
+### 3. Public Category Browsing
+```http
+# Get categories for homepage
+GET /api/public/categories
+```
 
 ---
 
 ## Notes
 
-- All image URLs returned are absolute (e.g., `http://localhost:5000/uploads/...`)
-- Database stores relative paths only (e.g., `uploads/categories/...`)
-- Change `UPLOAD_URL` environment variable when switching storage platforms
-- Categories are small lookup tables (~5-10 records)
-- Public endpoints only return active categories
-- Panel endpoints return all categories including inactive ones
+- All timestamps are in ISO 8601 format (UTC)
+- File URLs are full URLs (not relative paths)
+- Subtypes are UI-only labels (no business logic)
+- Color codes used for UI theming
+- Meta fields used for SEO
 
+---
+
+## Summary
+
+**Total Endpoints: 10**
+
+- **Panel**: 8 (list, get, create, update, delete, toggle status, toggle featured, reorder)
+- **Vendor**: 1 (list active)
+- **Public**: 1 (list active)
+
+All category endpoints are fully implemented and production-ready.

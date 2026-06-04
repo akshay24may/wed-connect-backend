@@ -58,13 +58,7 @@ export async function up(queryInterface, Sequelize) {
     },
     created_by: {
       type: Sequelize.BIGINT,
-      allowNull: true,
-      references: {
-        model: 'users',
-        key: 'id'
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'SET NULL'
+      allowNull: true
     },
     updated_by: {
       type: Sequelize.JSON,
@@ -72,13 +66,7 @@ export async function up(queryInterface, Sequelize) {
     },
     deleted_by: {
       type: Sequelize.BIGINT,
-      allowNull: true,
-      references: {
-        model: 'users',
-        key: 'id'
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'SET NULL'
+      allowNull: true
     },
     deleted_at: {
       type: Sequelize.DATE,

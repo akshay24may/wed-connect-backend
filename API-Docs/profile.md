@@ -1,769 +1,405 @@
-# Profile API Documentation
+# User Profile API Documentation
+
+**Base URL**: `/api/profile`
 
 ## Overview
-Profile management endpoints for all authenticated users (end-users and admins) to manage personal information, business/KYC details, and profile photos.
 
-**Base Path:** `/api/profile`
+The profile module handles user profile management including viewing, updating profile information, uploading photos, and changing passwords. All endpoints require authentication.
 
 ---
 
 ## Endpoints
 
-### 1. Get Current User's Profile
+### 1. Get Own Profile
 
-**GET** `/api/profile/me`
+**Endpoint:** `GET /api/profile`
 
-Get the current authenticated user's complete profile information.
+**Description:** Retrieve the authenticated user's profile information.
 
-**Authentication:** Required (JWT) - All authenticated users
-
-**Request Headers:**
+**Headers:**
 ```
 Authorization: Bearer <access_token>
 ```
 
-**Response (200 OK):**
+**Success Response (200):**
 ```json
 {
   "success": true,
+  "code": "SUCCESS",
   "message": "Data retrieved successfully",
   "data": {
-    "id": 123,
-    "fullName": "John Doe",
-    "countryCode": "+91",
-    "mobile": "9175113022",
-    "email": "john@example.com",
-    "status": "active",
-    "isPhoneVerified": true,
-    "isEmailVerified": false,
-    "kycStatus": "pending",
-    "subscriptionType": "free",
-    "subscriptionExpiresAt": null,
-    "createdAt": "2024-01-15T10:30:00.000Z",
-    "updatedAt": "2024-01-20T14:45:00.000Z",
-    "profile": {
-      "id": 45,
-      "dob": "1990-01-01",
-      "gender": "male",
-      "about": "Software developer",
-      "addressLine1": "123 Main Street",
-      "addressLine2": "Apartment 4B",
-      "cityId": 5,
-      "cityName": "Pune",
-      "stateId": 1,
-      "stateName": "Maharashtra",
-      "country": "India",
-      "pincode": "411001",
-      "latitude": "18.5204",
-      "longitude": "73.8567",
-      "profilePhoto": "https://res.cloudinary.com/your-cloud/image/upload/eclassify_app/uploads/profiles/user-123/photo.jpg",
-      "createdAt": "2024-01-15T10:30:00.000Z",
-      "updatedAt": "2024-01-20T14:45:00.000Z",
-      "state": {
-        "id": 1,
-        "name": "Maharashtra",
-        "slug": "maharashtra"
-      },
-      "city": {
-        "id": 5,
-        "name": "Pune",
-        "slug": "pune"
-      }
-    },
-    "role": {
+    "user": {
       "id": 1,
-      "name": "User",
-      "slug": "user"
-    }
-  }
-}
-```
-
----
-
-### 2. Update Current User's Profile
-
-**PUT** `/api/profile/me`
-
-Update current user's profile information with optional profile photo upload.
-
-**Authentication:** Required (JWT) - All authenticated users
-
-**Content-Type:** `multipart/form-data`
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: multipart/form-data
-```
-
-**Request Body (Form Data):**
-```
-fullName: John Doe (optional)
-email: john@example.com (optional)
-dob: 1990-01-01 (optional)
-gender: male (optional)
-about: Software developer (optional)
-addressLine1: 123 Main Street (optional)
-addressLine2: Apartment 4B (optional)
-cityId: 5 (optional)
-cityName: Pune (optional)
-stateId: 1 (optional)
-pincode: 411001 (optional)
-latitude: 18.5204 (optional)
-longitude: 73.8567 (optional)
-photo: <file> (optional, max 2MB, JPEG/PNG/WebP)
-```
-
-**Validation Rules:**
-- `email`: Valid email format
-- `photo`: Max 2MB, JPEG/PNG/WebP only
-- `cityId`: Must be a valid city ID
-- `stateId`: Must be a valid state ID
-- `latitude`: Decimal number
-- `longitude`: Decimal number
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Profile updated successfully",
-  "data": {
-    "id": 123,
-    "fullName": "John Doe",
-    "email": "john@example.com",
-    "profile": {
-      "profilePhoto": "https://res.cloudinary.com/your-cloud/image/upload/eclassify_app/uploads/profiles/user-123/photo.jpg",
-      "dob": "1990-01-01",
+      "fullName": "John Doe",
+      "mobile": "9175113022",
+      "email": "john@example.com",
+      "dob": "1990-01-15",
       "gender": "male",
-      "about": "Software developer",
-      "city": "Pune",
-      "stateId": 1
-    },
-    "photoUpload": {
-      "url": "http://localhost:3000/uploads/profiles/profile-123-1234567890.webp",
-      "thumbnailUrl": "http://localhost:3000/uploads/profiles/profile-123-1234567890-thumb.webp",
-      "publicId": "profile-123-1234567890.webp",
-      "storageType": "local"
-    }
-  }
-}
-```
-
-**Error Response (400 Bad Request):**
-```json
-{
-  "success": false,
-  "message": "Invalid email format",
-  "data": null
-}
-```
-
----
-
-### 3. Delete Current User's Profile Photo
-
-**DELETE** `/api/profile/me/photo`
-
-Delete the current user's profile photo.
-
-**Authentication:** Required (JWT) - All authenticated users
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Profile photo deleted successfully",
-  "data": null
-}
-```
-
-**Error Response (400 Bad Request):**
-```json
-{
-  "success": false,
-  "message": "No profile photo to delete",
-  "data": null
-}
-```
-
----
-
-### 4. Get Current User's Business/KYC Info
-
-**GET** `/api/profile/me/business`
-
-Get current user's business and KYC information.
-
-**Authentication:** Required (JWT) - All authenticated users
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Data retrieved successfully",
-  "data": {
-    "kycStatus": "pending",
-    "nameOnId": "John Michael Doe",
-    "businessName": "Doe Enterprises",
-    "gstin": "27AABCU9603R1ZM",
-    "aadharNumber": "123456789012",
-    "panNumber": "ABCDE1234F"
-  }
-}
-```
-
----
-
-### 5. Update Current User's Business/KYC Info
-
-**PUT** `/api/profile/me/business`
-
-Update current user's business and KYC information.
-
-**Authentication:** Required (JWT) - All authenticated users
-
-**Content-Type:** `application/json`
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-  "nameOnId": "John Michael Doe",
-  "businessName": "Doe Enterprises",
-  "gstin": "27AABCU9603R1ZM",
-  "aadharNumber": "123456789012",
-  "panNumber": "ABCDE1234F"
-}
-```
-
-**Validation Rules:**
-- `gstin`: Must be exactly 15 alphanumeric characters
-- `panNumber`: Must be exactly 10 alphanumeric characters
-- `aadharNumber`: Must be exactly 12 digits
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Business information updated successfully",
-  "data": {
-    "kycStatus": "pending",
-    "nameOnId": "John Michael Doe",
-    "businessName": "Doe Enterprises",
-    "gstin": "27AABCU9603R1ZM",
-    "aadharNumber": "123456789012",
-    "panNumber": "ABCDE1234F"
-  }
-}
-```
-
-**Error Response (400 Bad Request):**
-```json
-{
-  "success": false,
-  "message": "GSTIN must be 15 characters",
-  "data": null
-}
-```
-
----
-
-### 6. Get User Profile by ID (Admin Only)
-
-**GET** `/api/profile/:userId`
-
-Get any user's profile by their user ID. Only accessible by admins.
-
-**Authentication:** Required (JWT) - Admin/Super Admin only
-
-**URL Parameters:**
-- `userId` (required): User ID
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Data retrieved successfully",
-  "data": {
-    "id": 456,
-    "fullName": "Jane Smith",
-    "countryCode": "+91",
-    "mobile": "9876543210",
-    "email": "jane@example.com",
-    "status": "active",
-    "isPhoneVerified": true,
-    "isEmailVerified": true,
-    "kycStatus": "approved",
-    "subscriptionType": "premium",
-    "profile": {
-      "id": 78,
-      "dob": "1995-05-15",
-      "gender": "female",
-      "about": "Car enthusiast",
-      "cityId": 2,
+      "about": "Wedding photographer with 10 years experience",
+      "profilePhoto": "http://localhost:5000/uploads/profiles/2026/05/photo-123.jpg",
+      "avatarPhoto": "http://localhost:5000/uploads/profiles/2026/05/avatar-123.jpg",
+      "address": "123 Main Street",
+      "cityId": 10,
       "cityName": "Mumbai",
-      "stateId": 1,
-      "profilePhoto": "https://res.cloudinary.com/your-cloud/image/upload/eclassify_app/uploads/profiles/user-456/photo.jpg"
+      "stateId": 2,
+      "stateName": "Maharashtra",
+      "countryName": "India",
+      "pincode": "400001",
+      "isPhoneVerified": true,
+      "isEmailVerified": true,
+      "isProfileComplete": true,
+      "roleSlug": "vendor"
     }
   }
 }
 ```
 
-**Error Response (403 Forbidden):**
-```json
-{
-  "success": false,
-  "message": "Insufficient permissions",
-  "data": null
-}
-```
+**Error Responses:**
+- `401` - Unauthorized (invalid or missing token)
+- `404` - User not found
+- `500` - Internal server error
 
 ---
 
-### 7. Update User Profile by ID (Admin Only)
+### 2. Update Profile
 
-**PUT** `/api/profile/:userId`
+**Endpoint:** `PUT /api/profile`
 
-Update any user's profile by their user ID. Only accessible by admins.
+**Description:** Update user profile information.
 
-**Authentication:** Required (JWT) - Admin/Super Admin only
-
-**Content-Type:** `multipart/form-data`
-
-**URL Parameters:**
-- `userId` (required): User ID
-
-**Request Headers:**
+**Headers:**
 ```
 Authorization: Bearer <access_token>
-Content-Type: multipart/form-data
-```
-
-**Request Body (Form Data):**
-```
-fullName: Jane Smith (optional)
-email: jane@example.com (optional)
-status: active (optional)
-kycStatus: approved (optional)
-photo: <file> (optional, max 2MB, JPEG/PNG/WebP)
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Profile updated successfully",
-  "data": {
-    "id": 456,
-    "fullName": "Jane Smith",
-    "email": "jane@example.com",
-    "status": "active",
-    "kycStatus": "approved"
-  }
-}
-```
-
-**Error Response (403 Forbidden):**
-```json
-{
-  "success": false,
-  "message": "Insufficient permissions",
-  "data": null
-}
-```
-
----
-
-### 11. Get Current User's Preferred Location
-
-**GET** `/api/profile/me/preferred-location`
-
-Get current user's preferred location for search and notifications.
-
-**Authentication:** Required (JWT) - All authenticated users
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Data retrieved successfully",
-  "data": {
-    "preferredStateId": 1,
-    "preferredCityId": 5,
-    "preferredCityName": "Pune",
-    "preferredLatitude": "18.5204",
-    "preferredLongitude": "73.8567",
-    "preferredState": {
-      "id": 1,
-      "name": "Maharashtra",
-      "slug": "maharashtra"
-    },
-    "preferredCity": {
-      "id": 5,
-      "name": "Pune",
-      "slug": "pune"
-    }
-  }
-}
-```
-
-**Response when no preferred location set (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Data retrieved successfully",
-  "data": {
-    "preferredStateId": null,
-    "preferredCityId": null,
-    "preferredCityName": null,
-    "preferredLatitude": null,
-    "preferredLongitude": null,
-    "preferredState": null,
-    "preferredCity": null
-  }
-}
-```
-
----
-
-### 12. Update Current User's Preferred Location
-
-**PUT** `/api/profile/me/preferred-location`
-
-Update current user's preferred location for personalized search results and notifications.
-
-**Authentication:** Required (JWT) - All authenticated users
-
-**Content-Type:** `application/json`
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: application/json
 ```
 
 **Request Body:**
 ```json
 {
-  "preferredStateId": 1,
-  "preferredStateName": "Maharashtra",
-  "preferredCityId": 5,
-  "preferredCityName": "Pune",
-  "preferredLatitude": 18.5204,
-  "preferredLongitude": 73.8567
+  "fullName": "John Doe Updated",
+  "email": "john.updated@example.com",
+  "dob": "1990-01-15",
+  "gender": "male",
+  "about": "Wedding photographer with 10 years experience",
+  "address": "123 Main Street",
+  "cityId": 10,
+  "cityName": "Mumbai",
+  "stateId": 2,
+  "stateName": "Maharashtra",
+  "countryName": "India",
+  "pincode": "400001"
 }
 ```
 
-**All fields are optional. You can update any combination:**
-```json
-{
-  "preferredStateId": 2,
-  "preferredStateName": "Karnataka",
-  "preferredCityName": "Bangalore"
-}
-```
+**Optional Fields:**
+- `fullName` (string): User's full name
+- `email` (string): User's email address
+- `dob` (string): Date of birth (YYYY-MM-DD format)
+- `gender` (string): Gender (male, female, other)
+- `about` (text): About/bio text
+- `address` (text): Full address
+- `cityId` (integer): City ID
+- `cityName` (string): City name
+- `stateId` (integer): State ID
+- `stateName` (string): State name
+- `countryName` (string): Country name
+- `pincode` (string): Postal code
 
-**To clear preferred location, send null values:**
-```json
-{
-  "preferredStateId": null,
-  "preferredStateName": null,
-  "preferredCityId": null,
-  "preferredCityName": null,
-  "preferredLatitude": null,
-  "preferredLongitude": null
-}
-```
-
-**Validation Rules:**
-- `preferredStateId`: Must be a valid state ID or null
-- `preferredStateName`: String (max 255 characters) or null
-- `preferredCityId`: Must be a valid city ID or null
-- `preferredCityName`: String (max 100 characters) or null
-- `preferredLatitude`: Decimal number between -90 and 90, or null
-- `preferredLongitude`: Decimal number between -180 and 180, or null
-
-**Response (200 OK):**
+**Success Response (200):**
 ```json
 {
   "success": true,
-  "message": "Preferred location updated successfully",
+  "code": "UPDATED",
+  "message": "Profile updated successfully",
   "data": {
-    "preferredStateId": 1,
-    "preferredStateName": "Maharashtra",
-    "preferredCityId": 5,
-    "preferredCityName": "Pune",
-    "preferredLatitude": "18.5204",
-    "preferredLongitude": "73.8567"
+    "user": {
+      "id": 1,
+      "fullName": "John Doe Updated",
+      "mobile": "9175113022",
+      "email": "john.updated@example.com",
+      "dob": "1990-01-15",
+      "gender": "male",
+      "about": "Wedding photographer with 10 years experience",
+      "address": "123 Main Street",
+      "cityId": 10,
+      "cityName": "Mumbai",
+      "stateId": 2,
+      "stateName": "Maharashtra",
+      "pincode": "400001"
+    }
   }
 }
 ```
 
-**Error Response (400 Bad Request):**
+**Error Responses:**
+- `400` - Email already exists or validation error
+- `401` - Unauthorized (invalid or missing token)
+- `404` - User not found
+- `500` - Internal server error
+
+**Notes:**
+- Only provided fields are updated
+- Email uniqueness is validated
+- If email is changed, email verification status is reset
+
+---
+
+### 3. Upload Profile Photo
+
+**Endpoint:** `POST /api/profile/photo`
+
+**Description:** Upload or update user profile photo.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+Content-Type: multipart/form-data
+```
+
+**Request Body:** FormData
+- `photo` (File): Image file
+
+**File Requirements:**
+- **Max Size:** 5 MB
+- **Allowed Types:** JPEG, JPG, PNG, WEBP
+- **Field Name:** `photo`
+
+**Success Response (200):**
 ```json
 {
-  "success": false,
-  "message": "Invalid state ID",
+  "success": true,
+  "code": "SUCCESS",
+  "message": "File uploaded successfully",
+  "data": {
+    "profilePhoto": "http://localhost:5000/uploads/profiles/2026/05/photo-123.jpg"
+  }
+}
+```
+
+**Error Responses:**
+- `400` - Invalid file type, file too large, or validation error
+- `401` - Unauthorized (invalid or missing token)
+- `404` - User not found
+- `500` - Internal server error
+
+**Notes:**
+- Previous profile photo is automatically deleted
+- Photo URL is returned with full path
+- Storage type (local/cloudinary) is determined by environment configuration
+
+---
+
+### 4. Upload Avatar Photo
+
+**Endpoint:** `POST /api/profile/avatar`
+
+**Description:** Upload or update user avatar photo (smaller version for thumbnails/icons).
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+Content-Type: multipart/form-data
+```
+
+**Request Body:** FormData
+- `avatar` (File): Image file
+
+**File Requirements:**
+- **Max Size:** 5 MB
+- **Allowed Types:** JPEG, JPG, PNG, WEBP
+- **Field Name:** `avatar`
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "code": "SUCCESS",
+  "message": "File uploaded successfully",
+  "data": {
+    "avatarPhoto": "http://localhost:5000/uploads/profiles/2026/05/avatar-123.jpg"
+  }
+}
+```
+
+**Error Responses:**
+- `400` - Invalid file type, file too large, or validation error
+- `401` - Unauthorized (invalid or missing token)
+- `404` - User not found
+- `500` - Internal server error
+
+**Notes:**
+- Previous avatar photo is automatically deleted
+- Avatar URL is returned with full path
+- Storage type (local/cloudinary) is determined by environment configuration
+
+---
+
+### 5. Delete Profile Photo
+
+**Endpoint:** `DELETE /api/profile/photo`
+
+**Description:** Delete user profile photo.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "code": "DELETED",
+  "message": "File deleted successfully",
   "data": null
 }
 ```
 
----
+**Error Responses:**
+- `400` - Validation error
+- `401` - Unauthorized (invalid or missing token)
+- `404` - User not found
+- `500` - Internal server error
 
-## Common Endpoints (Public)
-
-### 8. Get All States
-
-### 9. Get All States
-
-**GET** `/api/common/states`
-
-Get list of all active states.
-
-**Authentication:** Not required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Data retrieved successfully",
-  "data": [
-    {
-      "id": 1,
-      "slug": "maharashtra",
-      "name": "Maharashtra",
-      "regionSlug": "western",
-      "regionName": "Western"
-    },
-    {
-      "id": 2,
-      "slug": "karnataka",
-      "name": "Karnataka",
-      "regionSlug": "southern",
-      "regionName": "Southern"
-    }
-  ]
-}
-```
+**Notes:**
+- Profile photo is removed from storage
+- Profile photo field is set to null in database
+- Avatar photo is not affected
 
 ---
 
-### 10. Get Cities by State
+### 6. Change Password
 
-**GET** `/api/common/cities/:stateId`
+**Endpoint:** `POST /api/profile/password/change`
 
-Get list of cities for a specific state.
+**Description:** Change user password (requires current password).
 
-**Authentication:** Not required
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
 
-**URL Parameters:**
-- `stateId` (required): State ID
-
-**Response (200 OK):**
+**Request Body:**
 ```json
 {
-  "success": true,
-  "message": "Data retrieved successfully",
-  "data": [
-    {
-      "id": 1,
-      "slug": "pune",
-      "name": "Pune",
-      "stateId": 1,
-      "stateName": "Maharashtra",
-      "district": "Pune"
-    },
-    {
-      "id": 2,
-      "slug": "mumbai",
-      "name": "Mumbai",
-      "stateId": 1,
-      "stateName": "Maharashtra",
-      "district": "Mumbai"
-    },
-    {
-      "id": 3,
-      "slug": "satara",
-      "name": "Satara",
-      "stateId": 1,
-      "stateName": "Maharashtra",
-      "district": "Satara"
-    },
-    {
-      "id": 4,
-      "slug": "nagpur",
-      "name": "Nagpur",
-      "stateId": 1,
-      "stateName": "Maharashtra",
-      "district": "Nagpur"
-    }
-  ]
+  "currentPassword": "OldPass123",
+  "newPassword": "NewSecurePass123"
 }
 ```
 
-**Note:** Cities are currently hardcoded. Will be replaced with database query when cities table is populated.
+**Required Fields:**
+- `currentPassword` (string): Current password
+- `newPassword` (string): New password (minimum 6 characters)
 
-**Error Response (400 Bad Request):**
+**Success Response (200):**
 ```json
 {
-  "success": false,
-  "message": "Invalid state ID",
+  "success": true,
+  "code": "UPDATED",
+  "message": "Password changed successfully",
   "data": null
 }
+```
+
+**Error Responses:**
+- `400` - Invalid current password or validation error
+- `401` - Unauthorized (invalid or missing token)
+- `404` - User not found
+- `500` - Internal server error
+
+**Notes:**
+- Current password must be correct
+- New password must be at least 6 characters
+- User sessions are NOT invalidated (unlike password reset)
+- User can continue using current access token
+
+---
+
+## Authentication
+
+All profile endpoints require JWT token in Authorization header:
+
+```
+Authorization: Bearer <access_token>
 ```
 
 ---
 
 ## Error Codes
 
-| Status Code | Description |
-|-------------|-------------|
-| 200 | Success |
-| 400 | Bad Request (validation error) |
-| 401 | Unauthorized (missing or invalid token) |
-| 404 | Not Found (user/resource not found) |
-| 500 | Internal Server Error |
+| Code | Description |
+|------|-------------|
+| `SUCCESS` | Operation successful |
+| `UPDATED` | Resource updated successfully |
+| `DELETED` | Resource deleted successfully |
+| `VALIDATION_ERROR` | Input validation failed |
+| `UNAUTHORIZED` | Authentication required or token invalid |
+| `NOT_FOUND` | User not found |
+| `INTERNAL_ERROR` | Server error |
 
 ---
 
-## Image Upload Details
+## Common Error Messages
 
-### Profile Photo Specifications
-- **Max Size:** 2MB
-- **Allowed Formats:** JPEG, PNG, WebP
-- **Max Dimensions:** 1920x1920px
-- **Thumbnail Size:** 150x150px
-- **Quality:** 80%
-- **Output Format:** WebP (optimized)
-
-### Storage
-- **Development:** Local storage (`./uploads/profiles`)
-- **Production:** Configurable (Cloudinary/S3 via `STORAGE_TYPE` env variable)
+- `User not found` - User account doesn't exist
+- `Email already exists` - Email is already registered to another user
+- `Invalid email or password` - Current password is incorrect
+- `Photo file is required` - No file uploaded
+- `Invalid file type` - File type not allowed
+- `File size exceeds maximum limit` - File too large
+- `Current password and new password are required` - Missing required fields
+- `New password must be at least 6 characters long` - Password too short
 
 ---
 
-## Testing Examples
+## File Upload Notes
 
-### Using cURL
+1. **Storage Configuration:**
+   - Local storage: Files saved to `uploads/profiles/{year}/{month}/`
+   - Cloudinary: Files uploaded to configured Cloudinary account
+   - Storage type determined by `STORAGE_TYPE` environment variable
 
-**Get Current User's Profile:**
-```bash
-curl -X GET http://localhost:3000/api/profile/me \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
+2. **File Naming:**
+   - Files are automatically renamed with timestamp and random suffix
+   - Original filename extension is preserved
+   - Example: `photo-1714737600000-abc123.jpg`
 
-**Update Current User's Profile with Photo:**
-```bash
-curl -X PUT http://localhost:3000/api/profile/me \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -F "fullName=John Doe" \
-  -F "email=john@example.com" \
-  -F "cityId=5" \
-  -F "cityName=Pune" \
-  -F "stateId=1" \
-  -F "photo=@/path/to/photo.jpg"
-```
+3. **File Deletion:**
+   - Old files are automatically deleted when uploading new ones
+   - Deletion works for both local and Cloudinary storage
 
-**Get User Profile by ID (Admin):**
-```bash
-curl -X GET http://localhost:3000/api/profile/456 \
-  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
-```
-
-**Update User Profile by ID (Admin):**
-```bash
-curl -X PUT http://localhost:3000/api/profile/456 \
-  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" \
-  -F "fullName=Jane Smith" \
-  -F "status=active" \
-  -F "kycStatus=approved"
-```
-
-**Get States:**
-```bash
-curl -X GET http://localhost:3000/api/common/states
-```
-
-**Get Cities:**
-```bash
-curl -X GET http://localhost:3000/api/common/cities/1
-```
-
-**Get Preferred Location:**
-```bash
-curl -X GET http://localhost:3000/api/profile/me/preferred-location \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-**Update Preferred Location:**
-```bash
-curl -X PUT http://localhost:3000/api/profile/me/preferred-location \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "preferredStateId": 1,
-    "preferredStateName": "Maharashtra",
-    "preferredCityId": 5,
-    "preferredCityName": "Pune",
-    "preferredLatitude": 18.5204,
-    "preferredLongitude": 73.8567
-  }'
-```
-
-**Clear Preferred Location:**
-```bash
-curl -X PUT http://localhost:3000/api/profile/me/preferred-location \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "preferredStateId": null,
-    "preferredStateName": null,
-    "preferredCityId": null,
-    "preferredCityName": null,
-    "preferredLatitude": null,
-    "preferredLongitude": null
-  }'
-```
+4. **URL Generation:**
+   - Full URLs are returned in responses
+   - URLs include base URL from environment configuration
+   - Example: `http://localhost:5000/uploads/profiles/2026/05/photo-123.jpg`
 
 ---
 
-## Notes
+## Security Notes
 
-1. **Profile endpoints** (`/api/profile/*`) require JWT authentication
-2. **Common endpoints** (`/api/common/*`) for states/cities are public
-3. **Admin-only endpoints** (`/api/profile/:userId`) require admin or super_admin role
-4. Profile photo is automatically optimized and converted to WebP
-5. Old profile photo is deleted when uploading a new one
-6. Cities endpoint currently returns hardcoded data (Pune, Mumbai, Satara, Nagpur)
-7. Transaction support ensures atomic updates for profile changes
-8. Users can only access their own profile via `/me` endpoints
-9. Admins can access any user's profile via `/:userId` endpoints
-10. **Preferred location** is used for personalized search results and location-based notifications
-11. Preferred location fields are independent and can be updated individually or together
-12. Setting preferred location to null clears the preference
+1. **Authentication Required:**
+   - All endpoints require valid JWT token
+   - Users can only access their own profile
+
+2. **Email Validation:**
+   - Email uniqueness is enforced
+   - Email format validation is performed
+
+3. **Password Security:**
+   - Current password verification required for password change
+   - Passwords are hashed using bcrypt with 10 salt rounds
+   - Minimum 6 characters required
+
+4. **File Upload Security:**
+   - File type validation (only images allowed)
+   - File size limits enforced (5 MB max)
+   - Files stored in user-specific directories
+
+---
+
+## Development Notes
+
+- Profile photos and avatars share the same storage type configuration
+- Consider implementing image compression/resizing for profile photos
+- Avatar photos should ideally be square and smaller than profile photos
+- Add rate limiting for file upload endpoints
+- Consider implementing CDN for serving uploaded images in production

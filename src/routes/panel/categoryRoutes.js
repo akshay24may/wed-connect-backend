@@ -1,37 +1,23 @@
-/**
- * Panel Category Routes
- * Admin/staff endpoints for category management
- */
-
 import express from 'express';
 import CategoryController from '#controllers/panel/categoryController.js';
-import { authenticate } from '#middleware/authMiddleware.js';
-import { uploadCategoryImages } from '#middleware/uploadMiddleware.js';
+import { authenticate, isPanelUser } from '#middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// All routes require authentication
-router.use(authenticate);
+router.get('/categories', authenticate, isPanelUser, CategoryController.getCategories);
 
-// Create category with optional image uploads (icon + image)
-router.post('/', uploadCategoryImages, CategoryController.create);
+router.get('/categories/:categoryId', authenticate, isPanelUser, CategoryController.getCategory);
 
-// Get all categories (including inactive)
-router.get('/', CategoryController.getAll);
+router.post('/categories', authenticate, isPanelUser, CategoryController.createCategory);
 
-// Update category status (action before ID to avoid conflicts)
-router.patch('/status/:id', CategoryController.updateStatus);
+router.put('/categories/:categoryId', authenticate, isPanelUser, CategoryController.updateCategory);
 
-// Update category featured status (action before ID to avoid conflicts)
-router.patch('/featured/:id', CategoryController.updateFeaturedStatus);
+router.delete('/categories/:categoryId', authenticate, isPanelUser, CategoryController.deleteCategory);
 
-// Get category by ID
-router.get('/:id', CategoryController.getById);
+router.patch('/categories/status/:categoryId', authenticate, isPanelUser, CategoryController.toggleStatus);
 
-// Update category with optional image uploads (icon + image)
-router.put('/:id', uploadCategoryImages, CategoryController.update);
+router.patch('/categories/featured/:categoryId', authenticate, isPanelUser, CategoryController.toggleFeatured);
 
-// Delete category
-router.delete('/:id', CategoryController.delete);
+router.patch('/categories/reorder/:categoryId', authenticate, isPanelUser, CategoryController.reorderCategory);
 
 export default router;
