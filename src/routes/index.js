@@ -15,6 +15,7 @@ import publicPortfolioRoutes from './public/portfolioRoutes.js';
 import publicReviewRoutes from './public/reviewRoutes.js';
 import publicCategoryRoutes from './public/categoryRoutes.js';
 import publicSubscriptionRoutes from './public/subscriptionRoutes.js';
+import publicLocationRoutes from './public/locationRoutes.js';
 import consumerReviewRoutes from './consumer/reviewRoutes.js';
 // import vendorProfileRoutes from './vendor/vendorProfileRoutes.js';
 
@@ -36,6 +37,7 @@ router.use('/public/portfolios', publicPortfolioRoutes);
 router.use('/public', publicReviewRoutes);
 router.use('/public', publicCategoryRoutes);
 router.use('/public/subscriptions', publicSubscriptionRoutes);
+router.use('/public/locations', publicLocationRoutes);
 router.use('/consumer', consumerReviewRoutes);
 // router.use('/vendor/profile', vendorProfileRoutes);
 

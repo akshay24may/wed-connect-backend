@@ -24,6 +24,10 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.STRING(500),
       allowNull: true
     },
+    about: {
+      type: Sequelize.TEXT,
+      allowNull: true
+    },
     business_logo: {
       type: Sequelize.STRING(500),
       allowNull: true

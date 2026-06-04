@@ -98,6 +98,10 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: false,
     },
+    price_unit: {
+      type: Sequelize.ENUM('per_day', 'per_event', 'per_hour', 'per_guest', 'per_plate', 'per_item', 'fixed', 'na'),
+      allowNull: true,
+    },
     price_breakdown: {
       type: Sequelize.JSONB,
       allowNull: true,
@@ -107,6 +111,10 @@ export async function up(queryInterface, Sequelize) {
       allowNull: true,
     },
     financial_terms: {
+      type: Sequelize.JSONB,
+      allowNull: true,
+    },
+    highlights: {
       type: Sequelize.JSONB,
       allowNull: true,
     },

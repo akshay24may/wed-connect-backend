@@ -148,6 +148,11 @@ Portfolio.init(
       defaultValue: false,
       field: 'price_on_request'
     },
+    priceUnit: {
+      type: DataTypes.ENUM('per_day', 'per_event', 'per_hour', 'per_guest', 'per_plate', 'per_item', 'fixed', 'na'),
+      allowNull: true,
+      field: 'price_unit'
+    },
     priceBreakdown: {
       type: DataTypes.JSONB,
       allowNull: true,
@@ -162,6 +167,11 @@ Portfolio.init(
       type: DataTypes.JSONB,
       allowNull: true,
       field: 'financial_terms'
+    },
+    highlights: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'highlights'
     },
     servicesOfferedTags: {
       type: DataTypes.JSONB,

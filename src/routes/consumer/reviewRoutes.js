@@ -1,7 +1,7 @@
 import express from 'express';
 import ReviewController from '#controllers/consumer/reviewController.js';
 import { authenticate, isConsumer } from '#middleware/authMiddleware.js';
-import uploadMiddleware from '#uploads/uploadMiddleware.js';
+import uploadMiddleware from '#middleware/uploadMiddleware.js';
 
 const router = express.Router();
 

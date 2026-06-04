@@ -40,7 +40,7 @@ class SubscriptionRepository {
         {
           model: Category,
           as: 'category',
-          attributes: ['id', 'name', 'slug', 'icon', 'iconStorageType']
+          attributes: ['id', 'name', 'slug', 'icon', 'storageType']
         }
       ],
       order: [
@@ -59,7 +59,7 @@ class SubscriptionRepository {
         {
           model: Category,
           as: 'category',
-          attributes: ['id', 'name', 'slug', 'icon', 'iconStorageType']
+          attributes: ['id', 'name', 'slug', 'icon', 'storageType']
         }
       ]
     });
@@ -72,7 +72,7 @@ class SubscriptionRepository {
         {
           model: Category,
           as: 'category',
-          attributes: ['id', 'name', 'slug', 'icon', 'iconStorageType']
+          attributes: ['id', 'name', 'slug', 'icon', 'storageType']
         }
       ]
     });

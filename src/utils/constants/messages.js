@@ -7,6 +7,14 @@ export const SUCCESS_MESSAGES = {
   SERVER_STARTED: 'Server started successfully',
   DB_CONNECTED: 'Database connected successfully',
   
+  // Auth Success
+  REGISTRATION_SUCCESS: 'Registration successful',
+  LOGIN_SUCCESS: 'Login successful',
+  LOGOUT_SUCCESS: 'Logged out successfully',
+  OTP_SENT: 'OTP sent successfully',
+  OTP_VERIFIED: 'OTP verified successfully',
+  PASSWORD_RESET_SUCCESS: 'Password reset successfully',
+  
   BUSINESS_PROFILES_RETRIEVED: 'Business profiles retrieved successfully',
   BUSINESS_PROFILE_RETRIEVED: 'Business profile retrieved successfully',
   BUSINESS_PROFILE_CREATED: 'Business profile created successfully',
@@ -86,6 +94,18 @@ export const ERROR_MESSAGES = {
   SERVER_ERROR: 'Internal server error',
   DB_CONNECTION_FAILED: 'Database connection failed',
   SERVICE_UNAVAILABLE: 'Service temporarily unavailable',
+  
+  // Auth Errors
+  USER_ALREADY_EXISTS: 'User with this mobile number already exists',
+  EMAIL_ALREADY_EXISTS: 'User with this email already exists',
+  INVALID_CREDENTIALS: 'Invalid mobile number or password',
+  ACCOUNT_SUSPENDED: 'Account is suspended. Please contact support.',
+  TOKEN_INVALID: 'Session expired or invalid token',
+  USER_NOT_FOUND: 'User not found',
+  OTP_NOT_FOUND: 'Invalid or expired OTP',
+  OTP_EXPIRED: 'OTP has expired',
+  OTP_MAX_ATTEMPTS: 'Maximum OTP verification attempts reached',
+  OTP_INVALID: 'Invalid OTP entered',
   
   BUSINESS_PROFILES_FETCH_FAILED: 'Failed to fetch business profiles',
   BUSINESS_PROFILE_FETCH_FAILED: 'Failed to fetch business profile',

@@ -48,6 +48,7 @@ Browse all published portfolios with advanced filtering and pagination.
         "priceRangeMin": 50000,
         "priceRangeMax": 150000,
         "priceOnRequest": false,
+        "priceUnit": "per_day",
         "cityTier": "tier_1",
         "isFreePlanPortfolio": false,
         "coverImage": "https://example.com/uploads/portfolio/1/cover.jpg",
@@ -64,7 +65,8 @@ Browse all published portfolios with advanced filtering and pagination.
         "businessProfile": {
           "id": 1,
           "businessName": "Dream Weddings Photography",
-          "businessTagline": "Capturing your special moments"
+          "businessTagline": "Capturing your special moments",
+          "about": "A passionate team of photographers with 10+ years of experience..."
         },
         "category": {
           "id": 5,
@@ -142,6 +144,7 @@ Get detailed information about a specific portfolio using its SEO-friendly slug.
       "priceRangeMin": 50000,
       "priceRangeMax": 150000,
       "priceOnRequest": false,
+      "priceUnit": "per_day",
       "priceBreakdown": {
         "items": [
           { "name": "Full Day Coverage", "price": 50000, "unit": "per day" },
@@ -156,6 +159,7 @@ Get detailed information about a specific portfolio using its SEO-friendly slug.
         "deliveryTimeline": "4-6 weeks",
         "cancellationTerms": "No refund within 30 days"
       },
+      "highlights": ["Award winner", "Veg food", "Non-veg food"],
       "servicesOfferedTags": ["wedding_day", "pre_wedding", "candid", "traditional", "drone"],
       "servicesDescription": "Complete photography services for your special day",
       "coverageCities": ["Delhi", "Noida", "Gurgaon", "Faridabad"],
@@ -190,6 +194,7 @@ Get detailed information about a specific portfolio using its SEO-friendly slug.
         "id": 1,
         "businessName": "Dream Weddings Photography",
         "businessTagline": "Capturing your special moments",
+        "about": "A passionate team of photographers with 10+ years of experience...",
         "businessEmail": "contact@dreamweddings.com",
         "businessPhone": "9876543210",
         "businessLogo": "https://example.com/uploads/business/1/logo.jpg",

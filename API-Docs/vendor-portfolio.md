@@ -49,6 +49,7 @@ Get vendor's own portfolios with optional filtering and pagination.
         "priceRangeMin": 50000,
         "priceRangeMax": 150000,
         "priceOnRequest": false,
+        "priceUnit": "per_day",
         "cityTier": "tier_1",
         "isFreePlanPortfolio": false,
         "status": "published",
@@ -110,6 +111,7 @@ Get detailed information about a specific portfolio.
       "priceRangeMin": 50000,
       "priceRangeMax": 150000,
       "priceOnRequest": false,
+      "priceUnit": "per_day",
       "priceBreakdown": {
         "items": [
           { "name": "Full Day Coverage", "price": 50000, "unit": "per day" },
@@ -124,6 +126,7 @@ Get detailed information about a specific portfolio.
         "deliveryTimeline": "4-6 weeks",
         "cancellationTerms": "No refund within 30 days"
       },
+      "highlights": ["Award winner", "Veg food", "Non-veg food"],
       "servicesOfferedTags": ["wedding_day", "pre_wedding", "candid", "traditional", "drone"],
       "servicesDescription": "Complete photography services for your special day",
       "coverageCities": ["Delhi", "Noida", "Gurgaon", "Faridabad"],
@@ -189,6 +192,7 @@ Create a new portfolio (status: draft by default).
   "priceRangeMin": 50000,
   "priceRangeMax": 150000,
   "priceOnRequest": false,
+  "priceUnit": "per_day",
   "priceBreakdown": {
     "items": [
       { "name": "Full Day Coverage", "price": 50000, "unit": "per day" }
@@ -202,6 +206,7 @@ Create a new portfolio (status: draft by default).
     "deliveryTimeline": "4-6 weeks",
     "cancellationTerms": "No refund within 30 days"
   },
+  "highlights": ["Award winner", "Veg food"],
   "servicesOfferedTags": ["wedding_day", "pre_wedding", "candid"],
   "servicesDescription": "Complete photography services",
   "coverageCities": ["Delhi", "Noida", "Gurgaon"],
@@ -310,6 +315,8 @@ Update portfolio details (only draft/rejected portfolios can be edited).
   "description": "Updated description",
   "priceRangeMin": 60000,
   "priceRangeMax": 180000,
+  "priceUnit": "per_day",
+  "highlights": ["Award winner"],
   "servicesOfferedTags": ["wedding_day", "pre_wedding", "candid", "drone"]
 }
 ```

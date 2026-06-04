@@ -29,6 +29,7 @@ class AuthController {
       });
 
       if (!result.success) {
+        console.warn(`Registration blocked for ${mobile || email}: ${result.message}`);
         return errorResponse(res, result.message, 400, 'REGISTRATION_FAILED');
       }
 

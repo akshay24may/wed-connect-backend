@@ -67,7 +67,7 @@ class PortfolioPublicService {
           {
             model: BusinessProfile,
             as: 'businessProfile',
-            attributes: ['id', 'businessName', 'businessTagline']
+            attributes: ['id', 'businessName', 'businessTagline', 'about']
           },
           {
             model: Category,
@@ -131,6 +131,7 @@ class PortfolioPublicService {
               'id',
               'businessName',
               'businessTagline',
+              'about',
               'businessEmail',
               'businessPhone',
               'businessLogo',
@@ -199,6 +200,7 @@ class PortfolioPublicService {
               'id',
               'businessName',
               'businessTagline',
+              'about',
               'businessEmail',
               'businessPhone',
               'businessLogo',

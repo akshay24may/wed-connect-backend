@@ -1,7 +1,7 @@
 import express from 'express';
 import PortfolioAlbumController from '#controllers/vendor/portfolioAlbumController.js';
 import { authenticate, isVendor } from '#middleware/authMiddleware.js';
-import { uploadAlbumMedia } from '#uploads/uploadMiddleware.js';
+import { uploadAlbumMedia } from '#middleware/uploadMiddleware.js';
 
 const router = express.Router();
 

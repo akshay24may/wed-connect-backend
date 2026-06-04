@@ -1,7 +1,7 @@
 import express from 'express';
 import BusinessProfileController from '#controllers/common/businessProfileController.js';
 import { authenticate } from '#middleware/authMiddleware.js';
-import { uploadBusinessMedia } from '#uploads/uploadMiddleware.js';
+import { uploadBusinessMedia } from '#middleware/uploadMiddleware.js';
 
 const router = express.Router();
 

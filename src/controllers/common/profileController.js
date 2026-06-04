@@ -4,7 +4,8 @@ import {
   errorResponse,
   validationErrorResponse
 } from '#utils/responseFormatter.js';
-// import { uploadSingle, deleteFile } from '#uploads/uploadMiddleware.js';
+import { uploadUserProfilePhoto, uploadUserAvatar } from '#middleware/uploadMiddleware.js';
+import { deleteFile, uploadFile } from '#config/storageConfig.js';
 import config from '#config/env.js';
 
 class ProfileController {
@@ -74,12 +75,7 @@ class ProfileController {
     try {
       const userId = req.user.userId;
 
-      const upload = uploadSingle('profiles', 'photo', {
-        maxSize: 5 * 1024 * 1024,
-        allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-      });
-
-      upload(req, res, async (err) => {
+      uploadUserProfilePhoto(req, res, async (err) => {
         if (err) {
           return validationErrorResponse(res, null, err.message);
         }
@@ -88,23 +84,29 @@ class ProfileController {
           return validationErrorResponse(res, null, 'Photo file is required');
         }
 
-        const photoPath = req.file.path;
-        const storageType = config.storage.type;
+        try {
+          const uploadResult = await uploadFile(req.file, `users/user-${userId}`);
 
-        const result = await userProfileService.uploadProfilePhoto(userId, photoPath, storageType);
+          const result = await userProfileService.uploadProfilePhoto(
+            userId, 
+            uploadResult.publicId, 
+            uploadResult.storageType
+          );
 
-        if (!result.success) {
-          if (photoPath) {
-            await deleteFile(photoPath);
+          if (!result.success) {
+            await deleteFile(uploadResult.publicId, uploadResult.storageType);
+            return errorResponse(res, result.message, 400);
           }
-          return errorResponse(res, result.message, 400);
-        }
 
-        if (result.oldPhotoPath) {
-          await deleteFile(result.oldPhotoPath);
-        }
+          if (result.oldPhotoPath) {
+            await deleteFile(result.oldPhotoPath, config.storage.type);
+          }
 
-        return successResponse(res, result.data, result.message);
+          return successResponse(res, result.data, result.message);
+        } catch (uploadError) {
+          console.error('Photo upload process error:', uploadError);
+          return errorResponse(res, 'Failed to process and save photo', 500);
+        }
       });
     } catch (error) {
       console.error('Upload profile photo error:', error);
@@ -116,12 +118,7 @@ class ProfileController {
     try {
       const userId = req.user.userId;
 
-      const upload = uploadSingle('profiles', 'avatar', {
-        maxSize: 5 * 1024 * 1024,
-        allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-      });
-
-      upload(req, res, async (err) => {
+      uploadUserAvatar(req, res, async (err) => {
         if (err) {
           return validationErrorResponse(res, null, err.message);
         }
@@ -130,23 +127,29 @@ class ProfileController {
           return validationErrorResponse(res, null, 'Avatar file is required');
         }
 
-        const photoPath = req.file.path;
-        const storageType = config.storage.type;
+        try {
+          const uploadResult = await uploadFile(req.file, `users/user-${userId}`);
 
-        const result = await userProfileService.uploadAvatarPhoto(userId, photoPath, storageType);
+          const result = await userProfileService.uploadAvatarPhoto(
+            userId, 
+            uploadResult.publicId, 
+            uploadResult.storageType
+          );
 
-        if (!result.success) {
-          if (photoPath) {
-            await deleteFile(photoPath);
+          if (!result.success) {
+            await deleteFile(uploadResult.publicId, uploadResult.storageType);
+            return errorResponse(res, result.message, 400);
           }
-          return errorResponse(res, result.message, 400);
-        }
 
-        if (result.oldAvatarPath) {
-          await deleteFile(result.oldAvatarPath);
-        }
+          if (result.oldAvatarPath) {
+            await deleteFile(result.oldAvatarPath, config.storage.type);
+          }
 
-        return successResponse(res, result.data, result.message);
+          return successResponse(res, result.data, result.message);
+        } catch (uploadError) {
+          console.error('Avatar upload process error:', uploadError);
+          return errorResponse(res, 'Failed to process and save avatar', 500);
+        }
       });
     } catch (error) {
       console.error('Upload avatar photo error:', error);
@@ -165,7 +168,7 @@ class ProfileController {
       }
 
       if (result.oldPhotoPath) {
-        await deleteFile(result.oldPhotoPath);
+        await deleteFile(result.oldPhotoPath, config.storage.type);
       }
 
       return successResponse(res, null, result.message, 'DELETED');

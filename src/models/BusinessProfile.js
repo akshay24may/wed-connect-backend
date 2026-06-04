@@ -49,6 +49,11 @@ BusinessProfile.init(
       allowNull: true,
       field: 'business_tagline'
     },
+    about: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'about'
+    },
     businessLogo: {
       type: DataTypes.STRING(500),
       allowNull: true,

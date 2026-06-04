@@ -4,6 +4,10 @@ import { successResponse, errorResponse } from '#utils/responseFormatter.js';
 class SubscriptionController {
   static async getPlans(req, res) {
     try {
+      if (!req.query.categoryId) {
+        return errorResponse(res, 'Category ID is required', 400);
+      }
+
       const filters = {
         categoryId: req.query.categoryId,
         categorySlug: req.query.categorySlug,

@@ -5,6 +5,7 @@ import {
   createResponse,
   notFoundResponse
 } from '#utils/responseFormatter.js';
+import { uploadFile } from '#config/storageConfig.js';
 
 class BusinessProfileController {
   static async getBusinessProfiles(req, res) {
@@ -124,11 +125,34 @@ class BusinessProfileController {
         return errorResponse(res, 'Business ID is required', 400);
       }
 
-      if (!req.files || req.files.length === 0) {
+      if (!req.files || Object.keys(req.files).length === 0) {
         return errorResponse(res, 'No files uploaded', 400);
       }
 
-      const result = await businessProfileService.uploadBusinessMedia(businessId, userId, req.files);
+      // Process files through unified storage service
+      const processedFiles = [];
+      try {
+        if (req.files.logo && req.files.logo.length > 0) {
+          const file = req.files.logo[0];
+          const uploadResult = await uploadFile(file, `business-profiles/business-${businessId}`);
+          processedFiles.push({ fieldname: 'logo', path: uploadResult.publicId });
+        }
+        
+        if (req.files.banner && req.files.banner.length > 0) {
+          const file = req.files.banner[0];
+          const uploadResult = await uploadFile(file, `business-profiles/business-${businessId}`);
+          processedFiles.push({ fieldname: 'banner', path: uploadResult.publicId });
+        }
+      } catch (uploadError) {
+        console.error('Photo upload process error:', uploadError);
+        return errorResponse(res, 'Failed to process and save media', 500);
+      }
+
+      if (processedFiles.length === 0) {
+        return errorResponse(res, 'No valid fields uploaded (expected logo or banner)', 400);
+      }
+
+      const result = await businessProfileService.uploadBusinessMedia(businessId, userId, processedFiles);
 
       if (!result.success) {
         if (result.message.includes('not found')) {

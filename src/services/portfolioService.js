@@ -132,12 +132,14 @@ class PortfolioService {
         isFreePlanPortfolio: isFreePlan,
         title: portfolioData.title,
         description: portfolioData.description,
-        priceRangeMin: portfolioData.priceRangeMin || 0,
+        priceRangeMin: portfolioData.priceRangeMin,
         priceRangeMax: portfolioData.priceRangeMax,
         priceOnRequest: portfolioData.priceOnRequest || false,
+        priceUnit: portfolioData.priceUnit || null,
         priceBreakdown: portfolioData.priceBreakdown,
         advancePercentage: portfolioData.advancePercentage,
         financialTerms: portfolioData.financialTerms,
+        highlights: portfolioData.highlights,
         servicesOfferedTags: portfolioData.servicesOfferedTags,
         servicesDescription: portfolioData.servicesDescription,
         coverageCities: portfolioData.coverageCities,
@@ -265,9 +267,11 @@ class PortfolioService {
       if (portfolioData.priceRangeMin !== undefined) updateData.priceRangeMin = portfolioData.priceRangeMin;
       if (portfolioData.priceRangeMax !== undefined) updateData.priceRangeMax = portfolioData.priceRangeMax;
       if (portfolioData.priceOnRequest !== undefined) updateData.priceOnRequest = portfolioData.priceOnRequest;
+      if (portfolioData.priceUnit !== undefined) updateData.priceUnit = portfolioData.priceUnit;
       if (portfolioData.priceBreakdown !== undefined) updateData.priceBreakdown = portfolioData.priceBreakdown;
       if (portfolioData.advancePercentage !== undefined) updateData.advancePercentage = portfolioData.advancePercentage;
       if (portfolioData.financialTerms !== undefined) updateData.financialTerms = portfolioData.financialTerms;
+      if (portfolioData.highlights !== undefined) updateData.highlights = portfolioData.highlights;
       if (portfolioData.servicesOfferedTags !== undefined) updateData.servicesOfferedTags = portfolioData.servicesOfferedTags;
       if (portfolioData.servicesDescription !== undefined) updateData.servicesDescription = portfolioData.servicesDescription;
       if (portfolioData.coverageCities !== undefined) updateData.coverageCities = portfolioData.coverageCities;

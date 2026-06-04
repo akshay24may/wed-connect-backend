@@ -43,7 +43,7 @@ class AuthService {
     });
 
     if (role.slug === 'vendor') {
-      await authRepository.createVendorProfile({
+      await authRepository.createBusinessProfile({
         userId: user.id,
         businessName: fullName
       });

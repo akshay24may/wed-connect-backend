@@ -65,6 +65,7 @@ class BusinessProfileService {
         userId,
         businessName: businessData.businessName,
         businessTagline: businessData.businessTagline,
+        about: businessData.about,
         businessEmail: businessData.businessEmail,
         businessPhone: businessData.businessPhone,
         contactPersonName: businessData.contactPersonName,
@@ -130,6 +131,7 @@ class BusinessProfileService {
       const updateData = {};
       if (businessData.businessName !== undefined) updateData.businessName = businessData.businessName;
       if (businessData.businessTagline !== undefined) updateData.businessTagline = businessData.businessTagline;
+      if (businessData.about !== undefined) updateData.about = businessData.about;
       if (businessData.businessEmail !== undefined) updateData.businessEmail = businessData.businessEmail;
       if (businessData.businessPhone !== undefined) updateData.businessPhone = businessData.businessPhone;
       if (businessData.contactPersonName !== undefined) updateData.contactPersonName = businessData.contactPersonName;

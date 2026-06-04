@@ -1,7 +1,7 @@
 import models from '#models/index.js';
 import bcrypt from 'bcrypt';
 
-const { User, Role, UserSession, OtpVerification, VendorProfile } = models;
+const { User, Role, UserSession, OtpVerification, BusinessProfile } = models;
 
 class AuthRepository {
   async findUserByMobile(mobile) {
@@ -185,8 +185,8 @@ class AuthRepository {
     );
   }
 
-  async createVendorProfile(vendorData) {
-    return await VendorProfile.create(vendorData);
+  async createBusinessProfile(vendorData) {
+    return await BusinessProfile.create(vendorData);
   }
 }
 

@@ -52,11 +52,15 @@ export const generateShareCode = (length = 8) => {
 };
 
 export const generateFileName = (originalFilename) => {
-  const timestamp = Date.now();
-  const randomString = crypto.randomBytes(4).toString('hex');
-  const extension = originalFilename.split('.').pop();
-  const baseName = originalFilename.split('.').slice(0, -1).join('.');
-  const slugifiedName = customSlugify(baseName);
+  const date = new Date();
+  const yyyymmdd = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+  const randomChars = crypto.randomBytes(2).toString('hex'); // 4 hex characters
   
-  return `${slugifiedName}-${timestamp}-${randomString}.${extension}`;
+  const parts = originalFilename.split('.');
+  const extension = parts.length > 1 ? parts.pop() : '';
+  const baseName = parts.join('.') || 'file';
+  
+  const slugifiedName = customSlugify(baseName) || 'file';
+  
+  return `${yyyymmdd}-${slugifiedName}-${randomChars}${extension ? `.${extension}` : ''}`;
 };
