@@ -201,12 +201,12 @@ Portfolio.init(
       field: 'destination_wedding_fee_different'
     },
     cancellationPolicyUser: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.TEXT,
       allowNull: true,
       field: 'cancellation_policy_user'
     },
     cancellationPolicyVendor: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.TEXT,
       allowNull: true,
       field: 'cancellation_policy_vendor'
     },

@@ -29,7 +29,14 @@ class LocationRepository {
 
     return await City.findAll({
       where,
-      attributes: ['id', 'name', 'slug', 'stateSlug', 'stateCode', 'districtCode', 'latitude', 'longitude', 'cityTier'],
+      attributes: ['id', 'name', 'slug', 'stateId', 'stateSlug', 'stateCode', 'districtCode', 'latitude', 'longitude', 'cityTier'],
+      include: [
+        {
+          model: State,
+          as: 'state',
+          attributes: ['id', 'name', 'slug']
+        }
+      ],
       order: [['name', 'ASC']]
     });
   }

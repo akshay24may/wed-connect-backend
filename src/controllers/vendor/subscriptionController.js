@@ -28,6 +28,33 @@ class SubscriptionController {
     }
   }
 
+  static async getActiveSubscriptions(req, res) {
+    try {
+      const userId = req.user.userId;
+      const { useStatus = 'all', categoryId } = req.query;
+
+      if (!['all', 'used', 'unused'].includes(useStatus)) {
+        return errorResponse(res, 'Invalid useStatus filter. Allowed values: all, used, unused.', 400);
+      }
+
+      const filters = {
+        useStatus,
+        categoryId: categoryId ? parseInt(categoryId) : null
+      };
+
+      const result = await subscriptionService.getActiveSubscriptions(userId, filters);
+
+      if (!result.success) {
+        return errorResponse(res, result.message, 400);
+      }
+
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      console.error('Get active subscriptions error:', error);
+      return errorResponse(res, 'Failed to fetch active subscriptions', 500);
+    }
+  }
+
   static async getUserSubscription(req, res) {
     try {
       const userId = req.user.userId;
@@ -49,13 +76,17 @@ class SubscriptionController {
   static async purchaseSubscription(req, res) {
     try {
       const userId = req.user.userId;
-      const { planId, paymentData } = req.body;
+      const { planId, paymentGateway } = req.body;
 
       if (!planId) {
         return errorResponse(res, 'Plan ID is required', 400);
       }
 
-      const result = await subscriptionService.purchaseSubscription(userId, planId, paymentData);
+      if (!paymentGateway) {
+        return errorResponse(res, 'Payment gateway is required', 400);
+      }
+
+      const result = await subscriptionService.purchaseSubscription(userId, planId, paymentGateway);
 
       if (!result.success) {
         return errorResponse(res, result.message, 400);

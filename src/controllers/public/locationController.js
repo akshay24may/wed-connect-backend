@@ -21,6 +21,17 @@ class LocationController {
       return errorResponse(res, 'Failed to fetch cities', 500);
     }
   }
+
+  static async getCitiesByTier(req, res) {
+    try {
+      const { cityTier } = req.params;
+      const result = await locationService.getCities({ cityTier });
+      return successResponse(res, result.data, result.message);
+    } catch (error) {
+      console.error('Get cities by tier error:', error);
+      return errorResponse(res, 'Failed to fetch cities by tier', 500);
+    }
+  }
 }
 
 export default LocationController;

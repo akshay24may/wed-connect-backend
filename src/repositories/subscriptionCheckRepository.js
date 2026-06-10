@@ -73,6 +73,19 @@ class SubscriptionCheckRepository {
     });
   }
 
+  async checkSubscriptionUsage(userSubscriptionId) {
+    const portfolio = await Portfolio.findOne({
+      where: {
+        userSubscriptionId,
+        status: {
+          [Op.ne]: 'rejected'
+        },
+        deletedAt: null
+      }
+    });
+    return !!portfolio;
+  }
+
   async countAlbumsByPortfolio(portfolioId) {
     return await PortfolioAlbum.count({
       where: {

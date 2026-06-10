@@ -1,4 +1,5 @@
 import subscriptionRepository from '#repositories/subscriptionRepository.js';
+import subscriptionCheckRepository from '#repositories/subscriptionCheckRepository.js';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '#utils/constants/messages.js';
 
 class SubscriptionService {
@@ -135,7 +136,54 @@ class SubscriptionService {
     }
   }
 
-  async purchaseSubscription(userId, planId, paymentData) {
+  async getActiveSubscriptions(userId, filters = {}) {
+    try {
+      const activeSubscriptions = await subscriptionCheckRepository.findActiveSubscriptionsByUser(userId);
+
+      const processedSubscriptions = [];
+
+      for (const sub of activeSubscriptions) {
+        // Filter by categoryId if provided
+        if (filters.categoryId && sub.categoryId !== filters.categoryId) {
+          continue;
+        }
+
+        const isUsed = await subscriptionCheckRepository.checkSubscriptionUsage(sub.id);
+        const useStatus = isUsed ? 'used' : 'unused';
+
+        // Filter by useStatus if provided
+        if (filters.useStatus && filters.useStatus !== 'all' && filters.useStatus !== useStatus) {
+          continue;
+        }
+
+        processedSubscriptions.push({
+          id: sub.id,
+          planName: sub.planName,
+          planCode: sub.planCode,
+          categoryId: sub.categoryId,
+          categoryName: sub.categoryName,
+          categorySlug: sub.categorySlug,
+          cityTier: sub.cityTier,
+          endsAt: sub.endsAt,
+          useStatus
+        });
+      }
+
+      return {
+        success: true,
+        message: SUCCESS_MESSAGES.USER_SUBSCRIPTIONS_RETRIEVED,
+        data: processedSubscriptions
+      };
+    } catch (error) {
+      console.error('Get active subscriptions service error:', error);
+      return {
+        success: false,
+        message: ERROR_MESSAGES.USER_SUBSCRIPTIONS_FETCH_FAILED
+      };
+    }
+  }
+
+  async purchaseSubscription(userId, planId, paymentGateway) {
     try {
       const plan = await subscriptionRepository.findPlanById(planId);
 
@@ -214,9 +262,9 @@ class SubscriptionService {
         isAutoApproveEnabled: plan.isAutoApproveEnabled,
         supportLevel: plan.supportLevel,
         features: plan.features,
-        paymentMethod: paymentData?.paymentMethod,
-        transactionId: paymentData?.transactionId,
-        amountPaid: paymentData?.amountPaid || plan.finalPrice
+        paymentMethod: paymentGateway,
+        transactionId: null,
+        amountPaid: plan.finalPrice
       };
 
       const subscription = await subscriptionRepository.createUserSubscription(subscriptionData, userId);

@@ -210,7 +210,45 @@ Authorization: Bearer <jwt_token>
 
 ---
 
-### 2. Get My Subscription by ID
+### 2. Get My Active Subscriptions
+
+Get active subscriptions for the authenticated vendor (useful for portfolio creation dropdown).
+
+**Endpoint:** `GET /api/vendor/subscriptions/active`
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Query Parameters:**
+- `useStatus` (optional, default: `all`) - Filter by usage status (`all`, `used`, `unused`).
+- `categoryId` (optional) - Filter by category ID.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User subscriptions retrieved successfully",
+  "data": [
+    {
+      "id": 2,
+      "planName": "Tier 1 Photographers Annual",
+      "planCode": "PHOTOGRAPHERS_T1_ANNUAL",
+      "categoryId": 1,
+      "categoryName": "Photographers",
+      "categorySlug": "photographers",
+      "cityTier": "tier_1",
+      "endsAt": "2027-06-04T14:00:02.909Z",
+      "useStatus": "unused"
+    }
+  ]
+}
+```
+
+---
+
+### 3. Get My Subscription by ID
 
 Get a specific subscription by ID.
 
@@ -241,11 +279,7 @@ Content-Type: application/json
 ```json
 {
   "planId": 1,
-  "paymentData": {
-    "paymentMethod": "razorpay",
-    "transactionId": "pay_abc123xyz",
-    "amountPaid": "4500.00"
-  }
+  "paymentGateway": "razorpay"
 }
 ```
 

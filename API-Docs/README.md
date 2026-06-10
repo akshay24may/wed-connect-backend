@@ -164,6 +164,20 @@ Endpoints for consumer reviews and vendor responses.
 
 ---
 
+### 9. Locations
+**File:** `locations.md`
+
+Endpoints for fetching states, cities, and filtering locations by city tier.
+
+**Endpoints (3):**
+- GET /api/public/locations/states
+- GET /api/public/locations/cities
+- GET /api/public/locations/cities/tier/:cityTier
+
+**Auth Required:** None (public)
+
+---
+
 ## API Endpoint Summary
 
 ### By Module
@@ -178,9 +192,10 @@ Endpoints for consumer reviews and vendor responses.
 | Public Portfolios | 6 | ✅ Complete | None |
 | Portfolio Albums | 7 | ✅ Complete | Vendor |
 | Portfolio Reviews | 15 | ✅ Complete | Mixed |
+| Locations | 3 | ✅ Complete | None |
 
-**Total Implemented: 66 endpoints**
-**Total Planned: 66 endpoints**
+**Total Implemented: 69 endpoints**
+**Total Planned: 69 endpoints**
 **Completion: 100%** 🎉
 
 ---

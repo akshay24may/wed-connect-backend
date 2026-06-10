@@ -141,11 +141,11 @@ export async function up(queryInterface, Sequelize) {
       defaultValue: false,
     },
     cancellation_policy_user: {
-      type: Sequelize.STRING(50),
+      type: Sequelize.TEXT,
       allowNull: true,
     },
     cancellation_policy_vendor: {
-      type: Sequelize.STRING(50),
+      type: Sequelize.TEXT,
       allowNull: true,
     },
     working_style: {
