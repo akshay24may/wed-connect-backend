@@ -1,4 +1,5 @@
 import portfolioRepository from '#repositories/portfolioRepository.js';
+import portfolioRevisionService from '#services/portfolioRevisionService.js';
 import models from '#models/index.js';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '#utils/constants/messages.js';
 
@@ -161,6 +162,17 @@ class PortfolioPanelService {
         };
       }
 
+      // If portfolio is already published and has a pending revision,
+      // this approval/rejection applies to the revision — not the portfolio status
+      if (portfolio.status === 'published') {
+        if (status === 'published') {
+          return await portfolioRevisionService.applyRevision(portfolioId, adminUserId);
+        }
+        if (status === 'rejected') {
+          return await portfolioRevisionService.rejectRevision(portfolioId, adminUserId, rejectionReason);
+        }
+      }
+
       const updateData = { status };
 
       if (status === 'published') {
@@ -204,6 +216,10 @@ class PortfolioPanelService {
         message: ERROR_MESSAGES.PORTFOLIO_STATUS_UPDATE_FAILED
       };
     }
+  }
+
+  async getRevisionDiff(portfolioId) {
+    return await portfolioRevisionService.getRevisionDiff(portfolioId);
   }
 
   async updateVisibility(portfolioId, adminUserId, visibilityData) {

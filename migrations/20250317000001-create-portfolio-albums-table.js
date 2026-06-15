@@ -111,6 +111,19 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: true
     },
+    approval_status: {
+      type: Sequelize.ENUM('approved', 'pending', 'rejected'),
+      allowNull: false,
+      defaultValue: 'approved'
+    },
+    pending_album_edits: {
+      type: Sequelize.JSONB,
+      allowNull: true
+    },
+    album_edit_history: {
+      type: Sequelize.JSONB,
+      allowNull: true
+    },
     created_by: {
       type: Sequelize.BIGINT,
       allowNull: true,

@@ -2,6 +2,7 @@ import portfolioAlbumRepository from '#repositories/portfolioAlbumRepository.js'
 import portfolioRepository from '#repositories/portfolioRepository.js';
 import subscriptionCheckService from '#services/subscriptionCheckService.js';
 import subscriptionCheckRepository from '#repositories/subscriptionCheckRepository.js';
+import portfolioRevisionService from '#services/portfolioRevisionService.js';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '#utils/constants/messages.js';
 
 class PortfolioAlbumService {
@@ -116,6 +117,12 @@ class PortfolioAlbumService {
         isPublic: albumData.isPublic !== undefined ? albumData.isPublic : true
       };
 
+      // Published portfolio: album goes pending until revision is approved
+      if (portfolio.status === 'published') {
+        data.approvalStatus = 'pending';
+        await portfolioRevisionService.getOrCreateRevision(portfolioId, userId);
+      }
+
       const album = await portfolioAlbumRepository.create(data, userId);
 
       return {
@@ -154,6 +161,43 @@ class PortfolioAlbumService {
         return {
           success: false,
           message: ERROR_MESSAGES.ALBUM_NAME_TOO_SHORT
+        };
+      }
+
+      const hasDirectFields = ['cityId', 'citySlug', 'latitude', 'longitude', 'displayOrder', 'isFeatured', 'isPublic']
+        .some(key => albumData[key] !== undefined);
+      const hasApprovalFields = ['albumName', 'albumDescription', 'locationName']
+        .some(key => albumData[key] !== undefined);
+
+      // For published portfolios, route text edits through pending_album_edits
+      const portfolio = album.portfolio;
+      if (portfolio && portfolio.status === 'published' && hasApprovalFields) {
+        const directData = {};
+        if (albumData.cityId !== undefined) directData.cityId = albumData.cityId;
+        if (albumData.citySlug !== undefined) directData.citySlug = albumData.citySlug;
+        if (albumData.latitude !== undefined) directData.latitude = albumData.latitude;
+        if (albumData.longitude !== undefined) directData.longitude = albumData.longitude;
+        if (albumData.displayOrder !== undefined) directData.displayOrder = albumData.displayOrder;
+        if (albumData.isFeatured !== undefined) directData.isFeatured = albumData.isFeatured;
+        if (albumData.isPublic !== undefined) directData.isPublic = albumData.isPublic;
+
+        if (Object.keys(directData).length > 0) {
+          await portfolioAlbumRepository.update(albumId, directData, userId);
+        }
+
+        const pendingEdits = {};
+        if (albumData.albumName !== undefined) pendingEdits.albumName = albumData.albumName;
+        if (albumData.albumDescription !== undefined) pendingEdits.albumDescription = albumData.albumDescription;
+        if (albumData.locationName !== undefined) pendingEdits.locationName = albumData.locationName;
+
+        await portfolioRevisionService.updateAlbumPendingEdits(album, pendingEdits, userId);
+        await portfolioRevisionService.getOrCreateRevision(portfolioId, userId);
+
+        const updatedAlbum = await portfolioAlbumRepository.findByIdAndUserId(albumId, userId);
+        return {
+          success: true,
+          message: 'Album text changes are pending admin approval.',
+          data: { album: updatedAlbum }
         };
       }
 

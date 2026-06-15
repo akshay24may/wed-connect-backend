@@ -129,6 +129,17 @@ Media.init(
       defaultValue: 'local',
       field: 'storage_type'
     },
+    approvalStatus: {
+      type: DataTypes.ENUM('approved', 'pending', 'rejected'),
+      allowNull: false,
+      defaultValue: 'approved',
+      field: 'approval_status'
+    },
+    portfolioRevisionId: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      field: 'portfolio_revision_id'
+    },
     createdBy: {
       type: DataTypes.BIGINT,
       allowNull: true,

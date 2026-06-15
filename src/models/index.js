@@ -34,6 +34,8 @@ import OtpVerification from './OtpVerification.js';
 // import UserSearch from './UserSearch.js';
 // import VendorProfile from './VendorProfile.js';
 import BusinessProfile from './BusinessProfile.js';
+import PortfolioRevision from './PortfolioRevision.js';
+import BusinessProfileRevision from './BusinessProfileRevision.js';
 
 const models = {
   Country,
@@ -70,7 +72,9 @@ const models = {
   OtpVerification,
   // UserSearch,
   // VendorProfile,
-  BusinessProfile
+  BusinessProfile,
+  PortfolioRevision,
+  BusinessProfileRevision
 };
 
 // Set up associations
@@ -170,6 +174,8 @@ Transaction.associate(models);
 
 // BusinessProfile associations
 BusinessProfile.associate(models);
+PortfolioRevision.associate(models);
+BusinessProfileRevision.associate(models);
 
 export { sequelize };
 export default models;

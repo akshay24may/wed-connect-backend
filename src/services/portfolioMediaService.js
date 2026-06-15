@@ -1,6 +1,7 @@
 import portfolioRepository from '#repositories/portfolioRepository.js';
 import subscriptionCheckService from '#services/subscriptionCheckService.js';
 import subscriptionCheckRepository from '#repositories/subscriptionCheckRepository.js';
+import portfolioRevisionService from '#services/portfolioRevisionService.js';
 import models from '#models/index.js';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '#utils/constants/messages.js';
 import { MEDIA_ENTITY_TYPE } from '#utils/constants/databaseEnums.js';
@@ -85,6 +86,13 @@ class PortfolioMediaService {
       const storageType = process.env.STORAGE_TYPE || 'local';
       const uploaded = [];
 
+      // For published portfolios, new uploads are pending until revision is approved
+      let revisionId = null;
+      if (portfolio.status === 'published') {
+        const revision = await portfolioRevisionService.getOrCreateRevision(portfolioId, userId);
+        revisionId = revision.id;
+      }
+
       const maxDisplayOrder = await Media.max('displayOrder', {
         where: {
           entityType: MEDIA_ENTITY_TYPE.PORTFOLIO,
@@ -112,7 +120,9 @@ class PortfolioMediaService {
           height: file.height || null,
           duration: file.duration || null,
           displayOrder: maxDisplayOrder + i + 1,
-          isPrimary: false
+          isPrimary: false,
+          approvalStatus: revisionId ? 'pending' : 'approved',
+          portfolioRevisionId: revisionId || null
         };
 
         const media = await Media.create(mediaData, { userId });
@@ -121,7 +131,9 @@ class PortfolioMediaService {
 
       return {
         success: true,
-        message: SUCCESS_MESSAGES.PORTFOLIO_MEDIA_UPLOADED,
+        message: revisionId
+          ? 'Media uploaded and pending admin approval.'
+          : SUCCESS_MESSAGES.PORTFOLIO_MEDIA_UPLOADED,
         data: { uploaded }
       };
     } catch (error) {

@@ -63,6 +63,11 @@ class Portfolio extends Model {
       foreignKey: 'user_subscription_id',
       as: 'userSubscription'
     });
+
+    this.hasOne(models.PortfolioRevision, {
+      foreignKey: 'portfolioId',
+      as: 'pendingRevision'
+    });
   }
 }
 

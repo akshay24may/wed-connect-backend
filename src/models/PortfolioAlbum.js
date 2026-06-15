@@ -169,6 +169,22 @@ PortfolioAlbum.init(
       defaultValue: true,
       field: 'is_public'
     },
+    approvalStatus: {
+      type: DataTypes.ENUM('approved', 'pending', 'rejected'),
+      allowNull: false,
+      defaultValue: 'approved',
+      field: 'approval_status'
+    },
+    pendingAlbumEdits: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'pending_album_edits'
+    },
+    albumEditHistory: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      field: 'album_edit_history'
+    },
     createdBy: {
       type: DataTypes.BIGINT,
       allowNull: true,

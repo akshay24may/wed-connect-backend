@@ -23,6 +23,11 @@ class BusinessProfile extends Model {
       foreignKey: 'deletedBy',
       as: 'deleter'
     });
+
+    this.hasOne(models.BusinessProfileRevision, {
+      foreignKey: 'businessProfileId',
+      as: 'pendingRevision'
+    });
   }
 }
 

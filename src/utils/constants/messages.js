@@ -87,7 +87,22 @@ export const SUCCESS_MESSAGES = {
   
   SUBSCRIPTION_ELIGIBILITY_CHECKED: 'Subscription eligibility checked successfully',
   PORTFOLIO_CREATION_VALIDATED: 'Portfolio creation validated successfully',
-  AVAILABLE_PLANS_RETRIEVED: 'Available plans retrieved successfully'
+  AVAILABLE_PLANS_RETRIEVED: 'Available plans retrieved successfully',
+
+  PORTFOLIO_REVISION_CREATED: 'Portfolio revision created successfully',
+  PORTFOLIO_REVISION_UPDATED: 'Portfolio revision updated successfully',
+  PORTFOLIO_REVISION_RETRIEVED: 'Portfolio revision retrieved successfully',
+  PORTFOLIO_REVISION_CANCELLED: 'Portfolio revision cancelled successfully',
+  PORTFOLIO_REVISION_APPROVED: 'Portfolio revision approved and applied successfully',
+  PORTFOLIO_REVISION_REJECTED: 'Portfolio revision rejected successfully',
+  PORTFOLIO_REVISION_DIFF_RETRIEVED: 'Portfolio revision diff retrieved successfully',
+
+  BUSINESS_PROFILE_REVISION_CREATED: 'Business profile revision created successfully',
+  BUSINESS_PROFILE_REVISION_UPDATED: 'Business profile revision updated successfully',
+  BUSINESS_PROFILE_REVISION_RETRIEVED: 'Business profile revision retrieved successfully',
+  BUSINESS_PROFILE_REVISION_CANCELLED: 'Business profile revision cancelled successfully',
+  BUSINESS_PROFILE_REVISION_APPROVED: 'Business profile revision approved and applied successfully',
+  BUSINESS_PROFILE_REVISION_REJECTED: 'Business profile revision rejected successfully'
 };
 
 export const ERROR_MESSAGES = {
@@ -232,5 +247,24 @@ export const ERROR_MESSAGES = {
   SUBSCRIPTION_PLAN_PRICE_REQUIRED: 'Price is required for subscription plan',
   SUBSCRIPTION_PLAN_DURATION_REQUIRED: 'Duration is required for subscription plan',
   PAYMENT_DATA_REQUIRED: 'Payment data is required',
-  CANCELLATION_REASON_REQUIRED: 'Cancellation reason is required'
+  CANCELLATION_REASON_REQUIRED: 'Cancellation reason is required',
+
+  PORTFOLIO_REVISION_NOT_FOUND: 'Portfolio revision not found',
+  PORTFOLIO_REVISION_FETCH_FAILED: 'Failed to fetch portfolio revision',
+  PORTFOLIO_REVISION_CREATE_FAILED: 'Failed to create portfolio revision',
+  PORTFOLIO_REVISION_UPDATE_FAILED: 'Failed to update portfolio revision',
+  PORTFOLIO_REVISION_CANCEL_FAILED: 'Failed to cancel portfolio revision',
+  PORTFOLIO_REVISION_APPROVE_FAILED: 'Failed to approve portfolio revision',
+  PORTFOLIO_REVISION_REJECT_FAILED: 'Failed to reject portfolio revision',
+  PORTFOLIO_REVISION_ALREADY_PENDING: 'A revision is already pending for this portfolio',
+  PORTFOLIO_REVISION_NOT_PENDING: 'Portfolio revision is not in pending state',
+
+  BUSINESS_PROFILE_REVISION_NOT_FOUND: 'Business profile revision not found',
+  BUSINESS_PROFILE_REVISION_FETCH_FAILED: 'Failed to fetch business profile revision',
+  BUSINESS_PROFILE_REVISION_CREATE_FAILED: 'Failed to create business profile revision',
+  BUSINESS_PROFILE_REVISION_UPDATE_FAILED: 'Failed to update business profile revision',
+  BUSINESS_PROFILE_REVISION_CANCEL_FAILED: 'Failed to cancel business profile revision',
+  BUSINESS_PROFILE_REVISION_APPROVE_FAILED: 'Failed to approve business profile revision',
+  BUSINESS_PROFILE_REVISION_REJECT_FAILED: 'Failed to reject business profile revision',
+  BUSINESS_PROFILE_REVISION_NOT_PENDING: 'Business profile revision is not in pending state'
 };

@@ -87,6 +87,15 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: 'local'
     },
+    approval_status: {
+      type: Sequelize.ENUM('approved', 'pending', 'rejected'),
+      allowNull: false,
+      defaultValue: 'approved'
+    },
+    portfolio_revision_id: {
+      type: Sequelize.BIGINT,
+      allowNull: true
+    },
     created_by: {
       type: Sequelize.BIGINT,
       allowNull: true,
@@ -153,6 +162,14 @@ export async function up(queryInterface, Sequelize) {
 
   await queryInterface.addIndex('media', ['deleted_at'], {
     name: 'idx_media_deleted_at'
+  });
+
+  await queryInterface.addIndex('media', ['approval_status'], {
+    name: 'idx_media_approval_status'
+  });
+
+  await queryInterface.addIndex('media', ['portfolio_revision_id'], {
+    name: 'idx_media_portfolio_revision_id'
   });
 }
 

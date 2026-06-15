@@ -1,6 +1,22 @@
 import portfolioRepository from '#repositories/portfolioRepository.js';
 import subscriptionCheckService from '#services/subscriptionCheckService.js';
+import portfolioRevisionService from '#services/portfolioRevisionService.js';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '#utils/constants/messages.js';
+
+const DIRECT_UPDATE_FIELDS = [
+  'priceRangeMin', 'priceRangeMax', 'priceOnRequest', 'priceUnit', 'advancePercentage',
+  'acceptsDestinationWedding', 'destinationWeddingFeeDifferent', 'decorPolicy',
+  'acceptsAdvanceBooking', 'minAdvanceBookingDays', 'weddingsCompleted', 'happyClientsCount',
+  'stateId', 'stateSlug', 'cityId', 'citySlug', 'categoryId', 'categorySlug',
+  'businessProfileId', 'userSubscriptionId'
+];
+
+const APPROVAL_FIELDS = [
+  'title', 'description', 'longDescription', 'servicesDescription', 'workingStyle',
+  'address', 'highlights', 'servicesOfferedTags', 'coverageCities', 'financialTerms',
+  'priceBreakdown', 'serviceDetails', 'cancellationPolicyUser', 'cancellationPolicyVendor',
+  'coverImage', 'coverImageStorageType'
+];
 
 class PortfolioService {
   async getPortfolios(userId, options = {}) {
@@ -190,13 +206,6 @@ class PortfolioService {
         };
       }
 
-      if (existingPortfolio.status === 'published') {
-        return {
-          success: false,
-          message: 'Cannot edit published portfolio. Please create a new version or contact admin.'
-        };
-      }
-
       if (portfolioData.title && portfolioData.title.length < 10) {
         return {
           success: false,
@@ -204,111 +213,96 @@ class PortfolioService {
         };
       }
 
-      if (portfolioData.userSubscriptionId && portfolioData.userSubscriptionId !== existingPortfolio.userSubscriptionId) {
-        const categoryId = portfolioData.categoryId || existingPortfolio.categoryId;
-        const cityId = portfolioData.cityId || existingPortfolio.cityId;
-
-        const validationResult = await subscriptionCheckService.validatePortfolioUpdate(
-          userId,
-          portfolioId,
-          portfolioData.userSubscriptionId,
-          categoryId,
-          cityId
-        );
-
-        if (!validationResult.success) {
-          return validationResult;
-        }
-      }
-
-      if (portfolioData.categoryId && portfolioData.categoryId !== existingPortfolio.categoryId) {
-        if (existingPortfolio.userSubscriptionId) {
+      // Non-published portfolios: apply all changes directly
+      if (existingPortfolio.status !== 'published') {
+        if (portfolioData.userSubscriptionId && portfolioData.userSubscriptionId !== existingPortfolio.userSubscriptionId) {
+          const categoryId = portfolioData.categoryId || existingPortfolio.categoryId;
           const cityId = portfolioData.cityId || existingPortfolio.cityId;
 
           const validationResult = await subscriptionCheckService.validatePortfolioUpdate(
-            userId,
-            portfolioId,
-            existingPortfolio.userSubscriptionId,
-            portfolioData.categoryId,
-            cityId
+            userId, portfolioId, portfolioData.userSubscriptionId, categoryId, cityId
           );
+          if (!validationResult.success) return validationResult;
+        }
 
-          if (!validationResult.success) {
-            return validationResult;
+        if (portfolioData.categoryId && portfolioData.categoryId !== existingPortfolio.categoryId) {
+          if (existingPortfolio.userSubscriptionId) {
+            const cityId = portfolioData.cityId || existingPortfolio.cityId;
+            const validationResult = await subscriptionCheckService.validatePortfolioUpdate(
+              userId, portfolioId, existingPortfolio.userSubscriptionId, portfolioData.categoryId, cityId
+            );
+            if (!validationResult.success) return validationResult;
           }
         }
-      }
 
-      if (portfolioData.cityId && portfolioData.cityId !== existingPortfolio.cityId) {
-        if (existingPortfolio.userSubscriptionId) {
-          const categoryId = portfolioData.categoryId || existingPortfolio.categoryId;
-
-          const validationResult = await subscriptionCheckService.validatePortfolioUpdate(
-            userId,
-            portfolioId,
-            existingPortfolio.userSubscriptionId,
-            categoryId,
-            portfolioData.cityId
-          );
-
-          if (!validationResult.success) {
-            return validationResult;
+        if (portfolioData.cityId && portfolioData.cityId !== existingPortfolio.cityId) {
+          if (existingPortfolio.userSubscriptionId) {
+            const categoryId = portfolioData.categoryId || existingPortfolio.categoryId;
+            const validationResult = await subscriptionCheckService.validatePortfolioUpdate(
+              userId, portfolioId, existingPortfolio.userSubscriptionId, categoryId, portfolioData.cityId
+            );
+            if (!validationResult.success) return validationResult;
           }
         }
+
+        const updateData = {};
+        const allFields = [...DIRECT_UPDATE_FIELDS, ...APPROVAL_FIELDS];
+        for (const key of allFields) {
+          if (portfolioData[key] !== undefined) updateData[key] = portfolioData[key];
+        }
+
+        if (portfolioData.cityId !== undefined) {
+          const cityTier = await portfolioRepository.getCityTier(portfolioData.cityId);
+          if (!cityTier) {
+            return { success: false, message: ERROR_MESSAGES.CITY_NOT_FOUND };
+          }
+          updateData.cityTier = cityTier;
+        }
+
+        const portfolio = await portfolioRepository.update(portfolioId, updateData, userId);
+        return {
+          success: true,
+          message: SUCCESS_MESSAGES.PORTFOLIO_UPDATED,
+          data: { portfolio }
+        };
       }
 
-      const updateData = {};
-      if (portfolioData.title !== undefined) updateData.title = portfolioData.title;
-      if (portfolioData.description !== undefined) updateData.description = portfolioData.description;
-      if (portfolioData.businessProfileId !== undefined) updateData.businessProfileId = portfolioData.businessProfileId;
-      if (portfolioData.categoryId !== undefined) updateData.categoryId = portfolioData.categoryId;
-      if (portfolioData.categorySlug !== undefined) updateData.categorySlug = portfolioData.categorySlug;
-      if (portfolioData.userSubscriptionId !== undefined) updateData.userSubscriptionId = portfolioData.userSubscriptionId;
-      if (portfolioData.priceRangeMin !== undefined) updateData.priceRangeMin = portfolioData.priceRangeMin;
-      if (portfolioData.priceRangeMax !== undefined) updateData.priceRangeMax = portfolioData.priceRangeMax;
-      if (portfolioData.priceOnRequest !== undefined) updateData.priceOnRequest = portfolioData.priceOnRequest;
-      if (portfolioData.priceUnit !== undefined) updateData.priceUnit = portfolioData.priceUnit;
-      if (portfolioData.priceBreakdown !== undefined) updateData.priceBreakdown = portfolioData.priceBreakdown;
-      if (portfolioData.advancePercentage !== undefined) updateData.advancePercentage = portfolioData.advancePercentage;
-      if (portfolioData.financialTerms !== undefined) updateData.financialTerms = portfolioData.financialTerms;
-      if (portfolioData.highlights !== undefined) updateData.highlights = portfolioData.highlights;
-      if (portfolioData.servicesOfferedTags !== undefined) updateData.servicesOfferedTags = portfolioData.servicesOfferedTags;
-      if (portfolioData.servicesDescription !== undefined) updateData.servicesDescription = portfolioData.servicesDescription;
-      if (portfolioData.coverageCities !== undefined) updateData.coverageCities = portfolioData.coverageCities;
-      if (portfolioData.acceptsDestinationWedding !== undefined) updateData.acceptsDestinationWedding = portfolioData.acceptsDestinationWedding;
-      if (portfolioData.destinationWeddingFeeDifferent !== undefined) updateData.destinationWeddingFeeDifferent = portfolioData.destinationWeddingFeeDifferent;
-      if (portfolioData.cancellationPolicyUser !== undefined) updateData.cancellationPolicyUser = portfolioData.cancellationPolicyUser;
-      if (portfolioData.cancellationPolicyVendor !== undefined) updateData.cancellationPolicyVendor = portfolioData.cancellationPolicyVendor;
-      if (portfolioData.workingStyle !== undefined) updateData.workingStyle = portfolioData.workingStyle;
-      if (portfolioData.longDescription !== undefined) updateData.longDescription = portfolioData.longDescription;
-      if (portfolioData.decorPolicy !== undefined) updateData.decorPolicy = portfolioData.decorPolicy;
-      if (portfolioData.acceptsAdvanceBooking !== undefined) updateData.acceptsAdvanceBooking = portfolioData.acceptsAdvanceBooking;
-      if (portfolioData.minAdvanceBookingDays !== undefined) updateData.minAdvanceBookingDays = portfolioData.minAdvanceBookingDays;
-      if (portfolioData.weddingsCompleted !== undefined) updateData.weddingsCompleted = portfolioData.weddingsCompleted;
-      if (portfolioData.happyClientsCount !== undefined) updateData.happyClientsCount = portfolioData.happyClientsCount;
-      if (portfolioData.stateId !== undefined) updateData.stateId = portfolioData.stateId;
+      // Published portfolio: split into direct + approval paths
+      const directData = {};
+      for (const key of DIRECT_UPDATE_FIELDS) {
+        if (portfolioData[key] !== undefined) directData[key] = portfolioData[key];
+      }
+
       if (portfolioData.cityId !== undefined) {
-        updateData.cityId = portfolioData.cityId;
         const cityTier = await portfolioRepository.getCityTier(portfolioData.cityId);
         if (!cityTier) {
-          return {
-            success: false,
-            message: ERROR_MESSAGES.CITY_NOT_FOUND
-          };
+          return { success: false, message: ERROR_MESSAGES.CITY_NOT_FOUND };
         }
-        updateData.cityTier = cityTier;
+        directData.cityTier = cityTier;
       }
-      if (portfolioData.stateSlug !== undefined) updateData.stateSlug = portfolioData.stateSlug;
-      if (portfolioData.citySlug !== undefined) updateData.citySlug = portfolioData.citySlug;
-      if (portfolioData.address !== undefined) updateData.address = portfolioData.address;
-      if (portfolioData.serviceDetails !== undefined) updateData.serviceDetails = portfolioData.serviceDetails;
 
-      const portfolio = await portfolioRepository.update(portfolioId, updateData, userId);
+      if (Object.keys(directData).length > 0) {
+        await portfolioRepository.update(portfolioId, directData, userId);
+      }
+
+      // Route approval-eligible fields to revision
+      const hasApprovalFields = APPROVAL_FIELDS.some(key => portfolioData[key] !== undefined);
+      let revision = null;
+      if (hasApprovalFields) {
+        revision = await portfolioRevisionService.updateRevisionFields(portfolioId, userId, portfolioData);
+      }
+
+      const updatedPortfolio = await portfolioRepository.findByIdAndUserId(portfolioId, userId);
 
       return {
         success: true,
-        message: SUCCESS_MESSAGES.PORTFOLIO_UPDATED,
-        data: { portfolio }
+        message: hasApprovalFields
+          ? 'Portfolio updated. Text changes are pending admin approval.'
+          : SUCCESS_MESSAGES.PORTFOLIO_UPDATED,
+        data: {
+          portfolio: updatedPortfolio,
+          revision: revision ? { id: revision.id, status: revision.status } : null
+        }
       };
     } catch (error) {
       console.error('Update portfolio error:', error);
